@@ -18,7 +18,10 @@ class SignUpScreen extends StatelessWidget {
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 20.0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -41,7 +44,7 @@ class SignUpScreen extends StatelessWidget {
                     _buildLogo(),
                   ],
                 ),
-                
+
                 // Welcome Text
                 const Center(
                   child: Padding(
@@ -145,14 +148,23 @@ class SignUpScreen extends StatelessWidget {
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.transparent,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF0A5C71), width: 1),
+                borderSide: const BorderSide(
+                  color: Color(0xFF0A5C71),
+                  width: 1,
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF0A5C71), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFF0A5C71),
+                  width: 2,
+                ),
               ),
             ),
           ),
@@ -168,11 +180,7 @@ class SignUpScreen extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          const Icon(
-            Icons.water_drop,
-            size: 110,
-            color: Color(0xFF1CA3C6),
-          ),
+          const Icon(Icons.water_drop, size: 110, color: Color(0xFF1CA3C6)),
           const Positioned(
             top: 55,
             child: Text(

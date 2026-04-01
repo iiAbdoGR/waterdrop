@@ -25,7 +25,10 @@ class _SignInScreenState extends State<SignInScreen> {
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 20.0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -55,13 +58,18 @@ class _SignInScreenState extends State<SignInScreen> {
                 _buildTextField('Password :', isPassword: true),
 
                 // Forgot Password
-                const Text(
-                  'Forgot Password ?',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontStyle: FontStyle.italic,
-                    decoration: TextDecoration.underline,
-                    color: Color(0xFF0A5C71),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/forgot_password');
+                  },
+                  child: const Text(
+                    'Forgot Password ?',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontStyle: FontStyle.italic,
+                      decoration: TextDecoration.underline,
+                      color: Color(0xFF0A5C71),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -79,7 +87,10 @@ class _SignInScreenState extends State<SignInScreen> {
                             _rememberMe = value ?? false;
                           });
                         },
-                        side: const BorderSide(color: Color(0xFF0A5C71), width: 1.5),
+                        side: const BorderSide(
+                          color: Color(0xFF0A5C71),
+                          width: 1.5,
+                        ),
                         activeColor: const Color(0xFF0A5C71),
                       ),
                     ),
@@ -176,14 +187,23 @@ class _SignInScreenState extends State<SignInScreen> {
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.transparent,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF0A5C71), width: 1),
+                borderSide: const BorderSide(
+                  color: Color(0xFF0A5C71),
+                  width: 1,
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF0A5C71), width: 2),
+                borderSide: const BorderSide(
+                  color: Color(0xFF0A5C71),
+                  width: 2,
+                ),
               ),
             ),
           ),
@@ -199,11 +219,7 @@ class _SignInScreenState extends State<SignInScreen> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          const Icon(
-            Icons.water_drop,
-            size: 110,
-            color: Color(0xFF1CA3C6),
-          ),
+          const Icon(Icons.water_drop, size: 110, color: Color(0xFF1CA3C6)),
           const Positioned(
             top: 55,
             child: Text(
