@@ -1,0 +1,1 @@
+ C:\\Users\\EVO\ TECH\\AndroidStudioProjects\\waterdrop\\.dart_tool\\flutter_build\\560bb7714238f2280dbdbee4de0a0126\\native_assets.json: 
