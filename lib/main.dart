@@ -1,15 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:waterdrop/VerifyEmail.dart';
+import 'package:waterdrop/verify_email.dart';
 import 'package:waterdrop/referesh.dart';
 import 'splash_screen.dart';
 import 'sign_in.dart';
 import 'sign_up.dart';
 import 'forgot_password.dart';
-import 'otp_verification.dart';
-import 'create_new_password.dart';
-import 'password_success.dart';
 import 'preparing_sensors.dart';
 import 'connect_device.dart';
 import 'scan_devices.dart';
@@ -92,9 +89,6 @@ class _PureDropAppState extends State<PureDropApp> {
         '/signup': (context) => const SignUpScreen(),
         '/verify': (context) => const EmailVerificationScreen(),
         '/forgot_password': (context) => const ForgotPasswordScreen(),
-        '/otp_verification': (context) => const OtpVerificationScreen(),
-        '/create_new_password': (context) => const CreateNewPasswordScreen(),
-        '/password_success': (context) => const PasswordSuccessScreen(),
         '/preparing_sensors': (context) => const PreparingSensorsScreen(),
         '/connect_device': (context) => const ConnectDeviceScreen(),
         '/scan_devices': (context) => const ScanDevicesScreen(),
