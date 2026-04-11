@@ -87,7 +87,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   decoration: InputDecoration(
                     hintText: 'Enter your Email',
                     hintStyle: TextStyle(
-                      color: const Color(0xFF0A5C71).withOpacity(0.5),
+                      color: const Color(0xFF0A5C71).withValues(alpha: 0.5),
                     ),
                     filled: true,
                     fillColor: Colors.transparent,
@@ -117,12 +117,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   height: 55,
                   child: ElevatedButton(
                     onPressed: () {
+                      final email = _emailController.text.isNotEmpty
+                          ? _emailController.text
+                          : 'your email';
+                      _emailController.clear();
                       Navigator.pushNamed(
                         context,
                         '/otp_verification',
-                        arguments: _emailController.text.isNotEmpty
-                            ? _emailController.text
-                            : 'your email',
+                        arguments: email,
                       );
                     },
                     style: ElevatedButton.styleFrom(

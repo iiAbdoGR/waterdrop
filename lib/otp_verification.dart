@@ -1,7 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-class OtpVerificationScreen extends StatelessWidget {
+class OtpVerificationScreen extends StatefulWidget {
   const OtpVerificationScreen({super.key});
+
+  @override
+  State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
+}
+
+class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
+  final List<TextEditingController> _controllers = List.generate(
+    5,
+    (_) => TextEditingController(),
+  );
+
+  @override
+  void dispose() {
+    for (var controller in _controllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,12 +92,38 @@ class OtpVerificationScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: List.generate(5, (index) {
-                    return Container(
+                    return SizedBox(
                       width: 55,
                       height: 55,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0A5C71),
-                        borderRadius: BorderRadius.circular(12),
+                      child: TextField(
+                        controller: _controllers[index],
+                        onChanged: (value) {
+                          if (value.length == 1) {
+                            FocusScope.of(context).nextFocus();
+                          } else if (value.isEmpty) {
+                            FocusScope.of(context).previousFocus();
+                          }
+                        },
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(1),
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: const Color(0xFF0A5C71),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                        ),
                       ),
                     );
                   }),
@@ -108,6 +153,9 @@ class OtpVerificationScreen extends StatelessWidget {
                   height: 55,
                   child: ElevatedButton(
                     onPressed: () {
+                      for (var controller in _controllers) {
+                        controller.clear();
+                      }
                       Navigator.pushNamed(context, '/create_new_password');
                     },
                     style: ElevatedButton.styleFrom(

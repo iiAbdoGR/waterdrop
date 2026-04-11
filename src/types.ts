@@ -1,0 +1,1 @@
+export type Screen = 'splash' | 'signin' | 'signup' | 'forgot_password' | 'otp' | 'new_password' | 'success' | 'preparing' | 'connect' | 'scan' | 'analyzing' | 'home' | 'history' | 'sensors' | 'settings' | 'refreshing' | 'sensor_detail' | 'personal_info' | 'reset_account' | 'region_language';

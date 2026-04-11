@@ -1,5 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
+//import 'dart:async';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -16,6 +17,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
@@ -28,8 +30,13 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Timer(const Duration(milliseconds: 3500), () {
-      Navigator.pushReplacementNamed(context, '/signin');
+    // 🔥 بدل Timer
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        if (!mounted) return;
+
+        Navigator.pushReplacementNamed(context, '/signin');
+      }
     });
   }
 
@@ -62,28 +69,27 @@ class _SplashScreenState extends State<SplashScreen>
                 return Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Base Outline
+                    // Outline drop
                     const Icon(
                       Icons.water_drop_outlined,
                       size: 200,
                       color: Color(0xFF1CA3C6),
                     ),
-                    // Base Text
-                    const Positioned(
-                      top: 120,
-                      child: Text(
-                        'Pure\nDrop',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Color(0xFF1CA3C6),
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          height: 1.2,
-                          fontFamily: 'Georgia',
-                        ),
+
+                    // BLUE text (base)
+                    const Text(
+                      "Pure\nDrop",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Color(0xFF1CA3C6),
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                        fontFamily: 'Georgia',
                       ),
                     ),
-                    // Filled portion
+
+                    // Filled part + WHITE text
                     ClipRect(
                       clipper: _WaterFillClipper(_animation.value),
                       child: Stack(
@@ -94,18 +100,17 @@ class _SplashScreenState extends State<SplashScreen>
                             size: 200,
                             color: Color(0xFF1CA3C6),
                           ),
-                          const Positioned(
-                            top: 120,
-                            child: Text(
-                              'Pure\nDrop',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                height: 1.2,
-                                fontFamily: 'Georgia',
-                              ),
+
+                          // White text when filled
+                          const Text(
+                            "Pure\nDrop",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              height: 1.2,
+                              fontFamily: 'Georgia',
                             ),
                           ),
                         ],
@@ -133,7 +138,6 @@ class _WaterFillClipper extends CustomClipper<Rect> {
   }
 
   @override
-  bool shouldReclip(_WaterFillClipper oldClipper) {
-    return oldClipper.fillPercent != fillPercent;
-  }
+  bool shouldReclip(_WaterFillClipper oldClipper) =>
+      oldClipper.fillPercent != fillPercent;
 }

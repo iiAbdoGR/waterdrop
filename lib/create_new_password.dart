@@ -1,7 +1,24 @@
 import 'package:flutter/material.dart';
 
-class CreateNewPasswordScreen extends StatelessWidget {
+class CreateNewPasswordScreen extends StatefulWidget {
   const CreateNewPasswordScreen({super.key});
+
+  @override
+  State<CreateNewPasswordScreen> createState() =>
+      _CreateNewPasswordScreenState();
+}
+
+class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
+  @override
+  void dispose() {
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,11 +68,16 @@ class CreateNewPasswordScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 40),
-                _buildPasswordField('New Password', 'Enter your New Password'),
+                _buildPasswordField(
+                  'New Password',
+                  'Enter your New Password',
+                  controller: _newPasswordController,
+                ),
                 const SizedBox(height: 20),
                 _buildPasswordField(
                   'Confirm Password',
                   'Enter your New Password Again',
+                  controller: _confirmPasswordController,
                 ),
                 const Spacer(),
                 SizedBox(
@@ -63,6 +85,8 @@ class CreateNewPasswordScreen extends StatelessWidget {
                   height: 55,
                   child: ElevatedButton(
                     onPressed: () {
+                      _newPasswordController.clear();
+                      _confirmPasswordController.clear();
                       Navigator.pushNamed(context, '/password_success');
                     },
                     style: ElevatedButton.styleFrom(
@@ -90,7 +114,11 @@ class CreateNewPasswordScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPasswordField(String label, String hint) {
+  Widget _buildPasswordField(
+    String label,
+    String hint, {
+    TextEditingController? controller,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -100,11 +128,12 @@ class CreateNewPasswordScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextField(
+          controller: controller,
           obscureText: true,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
-              color: const Color(0xFF0A5C71).withOpacity(0.5),
+              color: const Color(0xFF0A5C71).withValues(alpha: 0.5),
             ),
             filled: true,
             fillColor: Colors.transparent,
