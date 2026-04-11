@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'widgets/custom_bottom_nav.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -109,6 +110,8 @@ class SettingsScreen extends StatelessWidget {
                           height: 60,
                           child: ElevatedButton(
                             onPressed: () async {
+                              GoogleSignIn googleSignIn = GoogleSignIn();
+                              googleSignIn.disconnect();
                               await FirebaseAuth.instance.signOut();
                               Navigator.pushNamedAndRemoveUntil(
                                 context,
