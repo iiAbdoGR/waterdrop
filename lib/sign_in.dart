@@ -166,7 +166,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         }
 
                         try {
-                          final credential = await FirebaseAuth.instance
+                          await FirebaseAuth.instance
                               .signInWithEmailAndPassword(
                                 email: _emailController.text.trim(),
                                 password: _passwordController.text.trim(),
