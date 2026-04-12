@@ -63,7 +63,7 @@ class SensorsScreen extends StatelessWidget {
               width: 256,
               height: 256,
               decoration: BoxDecoration(
-                color: const Color(0xFF4ECDC4).withOpacity(0.2),
+                color: const Color(0xFF4ECDC4).withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
             ),
@@ -75,7 +75,7 @@ class SensorsScreen extends StatelessWidget {
               width: 192,
               height: 192,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFE66D).withOpacity(0.2),
+                color: const Color(0xFFFFE66D).withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
             ),
@@ -122,7 +122,7 @@ class SensorsScreen extends StatelessWidget {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -168,14 +168,14 @@ class SensorsScreen extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.8),
+                              color: Colors.white.withValues(alpha: 0.8),
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.5),
+                                color: Colors.white.withValues(alpha: 0.5),
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: Colors.black.withValues(alpha: 0.05),
                                   blurRadius: 20,
                                   offset: const Offset(0, 10),
                                 ),
@@ -188,7 +188,7 @@ class SensorsScreen extends StatelessWidget {
                                   height: 64,
                                   decoration: BoxDecoration(
                                     color: (sensor['color'] as Color)
-                                        .withOpacity(0.1),
+                                        .withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Icon(
@@ -219,7 +219,7 @@ class SensorsScreen extends StatelessWidget {
                                           fontWeight: FontWeight.bold,
                                           color: const Color(
                                             0xFF0A5C71,
-                                          ).withOpacity(0.5),
+                                          ).withValues(alpha: 0.5),
                                         ),
                                       ),
                                     ],
@@ -252,7 +252,7 @@ class SensorsScreen extends StatelessWidget {
                                               fontWeight: FontWeight.bold,
                                               color: const Color(
                                                 0xFF0A5C71,
-                                              ).withOpacity(0.5),
+                                              ).withValues(alpha: 0.5),
                                             ),
                                           ),
                                         ],
@@ -266,7 +266,7 @@ class SensorsScreen extends StatelessWidget {
                                       ),
                                       decoration: BoxDecoration(
                                         color: (sensor['color'] as Color)
-                                            .withOpacity(0.1),
+                                            .withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(

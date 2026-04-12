@@ -32,7 +32,7 @@ class SensorDetailScreen extends StatelessWidget {
               width: 256,
               height: 256,
               decoration: BoxDecoration(
-                color: (sensor['color'] as Color).withOpacity(0.2),
+                color: (sensor['color'] as Color).withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
             ),
@@ -44,7 +44,7 @@ class SensorDetailScreen extends StatelessWidget {
               width: 192,
               height: 192,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFE66D).withOpacity(0.2),
+                color: const Color(0xFFFFE66D).withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
             ),
@@ -91,7 +91,7 @@ class SensorDetailScreen extends StatelessWidget {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -127,14 +127,14 @@ class SensorDetailScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(32),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                             borderRadius: BorderRadius.circular(40),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.white.withValues(alpha: 0.5),
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),
@@ -146,8 +146,8 @@ class SensorDetailScreen extends StatelessWidget {
                                 width: 80,
                                 height: 80,
                                 decoration: BoxDecoration(
-                                  color: (sensor['color'] as Color).withOpacity(
-                                    0.1,
+                                  color: (sensor['color'] as Color).withValues(
+                                    alpha: 0.1,
                                   ),
                                   shape: BoxShape.circle,
                                 ),
@@ -182,7 +182,7 @@ class SensorDetailScreen extends StatelessWidget {
                                         fontWeight: FontWeight.bold,
                                         color: const Color(
                                           0xFF0A5C71,
-                                        ).withOpacity(0.5),
+                                        ).withValues(alpha: 0.5),
                                       ),
                                     ),
                                   ],
@@ -195,8 +195,8 @@ class SensorDetailScreen extends StatelessWidget {
                                   vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: (sensor['color'] as Color).withOpacity(
-                                    0.1,
+                                  color: (sensor['color'] as Color).withValues(
+                                    alpha: 0.1,
                                   ),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
@@ -219,14 +219,14 @@ class SensorDetailScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                             borderRadius: BorderRadius.circular(32),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.white.withValues(alpha: 0.5),
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),
@@ -242,7 +242,7 @@ class SensorDetailScreen extends StatelessWidget {
                                   fontWeight: FontWeight.w900,
                                   color: const Color(
                                     0xFF0A5C71,
-                                  ).withOpacity(0.4),
+                                  ).withValues(alpha: 0.4),
                                   letterSpacing: 1.5,
                                 ),
                               ),
@@ -261,7 +261,7 @@ class SensorDetailScreen extends StatelessWidget {
                                           height: 1,
                                           color: const Color(
                                             0xFF0A5C71,
-                                          ).withOpacity(0.05),
+                                          ).withValues(alpha: 0.05),
                                         ),
                                       ),
                                     ),
@@ -296,7 +296,7 @@ class SensorDetailScreen extends StatelessWidget {
                                               fontWeight: FontWeight.w900,
                                               color: const Color(
                                                 0xFF0A5C71,
-                                              ).withOpacity(0.4),
+                                              ).withValues(alpha: 0.4),
                                             ),
                                           ),
                                         )
@@ -312,14 +312,14 @@ class SensorDetailScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.white.withValues(alpha: 0.8),
                             borderRadius: BorderRadius.circular(32),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.white.withValues(alpha: 0.5),
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),
@@ -335,7 +335,7 @@ class SensorDetailScreen extends StatelessWidget {
                                   fontWeight: FontWeight.w900,
                                   color: const Color(
                                     0xFF0A5C71,
-                                  ).withOpacity(0.4),
+                                  ).withValues(alpha: 0.4),
                                   letterSpacing: 1.5,
                                 ),
                               ),

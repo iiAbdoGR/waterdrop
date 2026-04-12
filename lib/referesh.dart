@@ -8,7 +8,8 @@ class RefreshScreen extends StatefulWidget {
   State<RefreshScreen> createState() => _RefreshScreenState();
 }
 
-class _RefreshScreenState extends State<RefreshScreen> with SingleTickerProviderStateMixin {
+class _RefreshScreenState extends State<RefreshScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _rotationAnimation;
   late Animation<double> _scaleAnimation;
@@ -21,9 +22,10 @@ class _RefreshScreenState extends State<RefreshScreen> with SingleTickerProvider
       vsync: this,
     )..repeat();
 
-    _rotationAnimation = Tween<double>(begin: 0, end: 2 * 3.14159).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.linear),
-    );
+    _rotationAnimation = Tween<double>(
+      begin: 0,
+      end: 2 * 3.14159,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.linear));
 
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(tween: Tween<double>(begin: 1.0, end: 1.2), weight: 50),
@@ -90,7 +92,7 @@ class _RefreshScreenState extends State<RefreshScreen> with SingleTickerProvider
                 ),
               ),
             ),
-            
+
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -110,7 +112,9 @@ class _RefreshScreenState extends State<RefreshScreen> with SingleTickerProvider
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF0A5C71).withOpacity(0.1),
+                                  color: const Color(
+                                    0xFF0A5C71,
+                                  ).withValues(alpha: 0.1),
                                   blurRadius: 30,
                                   spreadRadius: 5,
                                 ),
@@ -141,7 +145,7 @@ class _RefreshScreenState extends State<RefreshScreen> with SingleTickerProvider
                     'Updating sensor information...',
                     style: TextStyle(
                       fontSize: 14,
-                      color: const Color(0xFF0A5C71).withOpacity(0.6),
+                      color: const Color(0xFF0A5C71).withValues(alpha: 0.6),
                       fontFamily: 'Georgia',
                     ),
                   ),

@@ -349,7 +349,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Icon(
               Icons.water_drop,
               size: 150,
-              color: Colors.white.withOpacity(0.35),
+              color: Colors.white.withValues(alpha: 0.35),
             ),
           ),
 

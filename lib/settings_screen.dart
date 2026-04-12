@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'widgets/custom_bottom_nav.dart';
 import 'home_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -19,7 +21,7 @@ class SettingsScreen extends StatelessWidget {
               width: 256,
               height: 256,
               decoration: BoxDecoration(
-                color: const Color(0xFF4ECDC4).withOpacity(0.2),
+                color: const Color(0xFF4ECDC4).withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
             ),
@@ -31,7 +33,7 @@ class SettingsScreen extends StatelessWidget {
               width: 192,
               height: 192,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFE66D).withOpacity(0.2),
+                color: const Color(0xFFFFE66D).withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
             ),
@@ -125,7 +127,15 @@ class SettingsScreen extends StatelessWidget {
                           width: double.infinity,
                           height: 60,
                           child: ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
+                              // تسجيل خروج من Firebase
+                              await FirebaseAuth.instance.signOut();
+
+                              // تسجيل خروج من Google
+                              GoogleSignIn googleSignIn = GoogleSignIn();
+                              googleSignIn.disconnect();
+
+                              // مسح النافيجيشن
                               Navigator.pushNamedAndRemoveUntil(
                                 context,
                                 '/signin',
@@ -133,12 +143,14 @@ class SettingsScreen extends StatelessWidget {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white.withOpacity(0.8),
+                              backgroundColor: Colors.white.withValues(
+                                alpha: 0.8,
+                              ),
                               elevation: 0,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(24),
                                 side: BorderSide(
-                                  color: Colors.white.withOpacity(0.5),
+                                  color: Colors.white.withValues(alpha: 0.5),
                                 ),
                               ),
                             ),
@@ -180,12 +192,12 @@ class SettingsScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.8),
+          color: Colors.white.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.white.withOpacity(0.5)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -216,7 +228,7 @@ class SettingsScreen extends StatelessWidget {
             ),
             Icon(
               Icons.chevron_right,
-              color: const Color(0xFF0A5C71).withOpacity(0.3),
+              color: const Color(0xFF0A5C71).withValues(alpha: 0.3),
             ),
           ],
         ),
