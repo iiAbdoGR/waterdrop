@@ -14,29 +14,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedDevice = 'Device A';
   bool _isDeviceDropdownOpen = false;
-  String? userName;
-  @override
-  void initState() {
-    super.initState();
-    loadUserName(); // 👈 هنا
-  }
-
-  Future<void> loadUserName() async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-
-    final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .get();
-
-    final data = doc.data();
-
-    final fullName = data?['name'] ?? "";
-
-    setState(() {
-      userName = fullName.split(" ").first;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -158,15 +135,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 24),
 
                     // Greeting
-                    Text(
-                      userName == null ? "Loading..." : "Hello, $userName!",
+                    StreamBuilder<DocumentSnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(FirebaseAuth.instance.currentUser!.uid)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        final data =
+                            snapshot.data?.data() as Map<String, dynamic>?;
+                        final fullName = data?['name'] ?? "User";
+                        final firstName = fullName.split(" ").first;
 
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF0A5C71),
-                        letterSpacing: -0.5,
-                      ),
+                        return Text(
+                          "Hello, $firstName!",
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF0A5C71),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 4),
                     Text(
