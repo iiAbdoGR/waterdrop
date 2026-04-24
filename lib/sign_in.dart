@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -17,25 +18,31 @@ class _SignInScreenState extends State<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
 
   Future signInWithGoogle() async {
-    // Trigger the authentication flow
     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-    if (googleUser == null) {
-      return;
-    }
+    if (googleUser == null) return;
 
-    // Obtain the auth details from the request
     final GoogleSignInAuthentication googleAuth =
         await googleUser.authentication;
 
-    // Create a new credential
     final credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
 
-    // Once signed in, return the UserCredential
-    await FirebaseAuth.instance.signInWithCredential(credential);
+    final userCred = await FirebaseAuth.instance.signInWithCredential(
+      credential,
+    );
+
+    final user = userCred.user!;
+    final firstName = (user.displayName ?? "").split(" ").first;
+    // 🔥 هنا أهم جزء
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      'name': firstName, // 👈 الاسم من جوجل
+      'email': user.email,
+      'createdAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true)); // 👈 مهم عشان ميكسرش الداتا القديمة
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('loginType', 'google');
     await prefs.setBool('rememberMe', true);

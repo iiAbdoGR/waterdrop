@@ -1,8 +1,40 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'widgets/custom_bottom_nav.dart';
 
-class PersonalInfoScreen extends StatelessWidget {
+class PersonalInfoScreen extends StatefulWidget {
   const PersonalInfoScreen({super.key});
+
+  @override
+  State<PersonalInfoScreen> createState() => _PersonalInfoScreenState();
+}
+
+class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
+  String name = "";
+  String email = "";
+
+  @override
+  void initState() {
+    super.initState();
+    loadUserData();
+  }
+
+  Future<void> loadUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user!.uid)
+        .get();
+
+    final data = doc.data();
+
+    setState(() {
+      name = (data?['name'] ?? "");
+      email = user.email ?? "";
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +126,11 @@ class PersonalInfoScreen extends StatelessWidget {
                           ),
                           child: Column(
                             children: [
-                              _buildInfoRow('FULL NAME', 'Mayar Ahmed', false),
+                              _buildInfoRow(
+                                'FULL NAME',
+                                name.isEmpty ? "Loading..." : name,
+                                false,
+                              ),
                               Divider(
                                 color: const Color(
                                   0xFF0A5C71,
@@ -103,7 +139,7 @@ class PersonalInfoScreen extends StatelessWidget {
                               ),
                               _buildInfoRow(
                                 'EMAIL ADDRESS',
-                                'mayar61134@gmail.com',
+                                email.isEmpty ? "Loading..." : email,
                                 true,
                               ),
                               Divider(
@@ -124,7 +160,14 @@ class PersonalInfoScreen extends StatelessWidget {
                           height: 60,
                           child: ElevatedButton(
                             onPressed: () {
-                              Navigator.pushNamed(context, '/reset_account');
+                              Navigator.pushNamed(
+                                context,
+                                '/reset_account',
+                              ).then((result) {
+                                if (result == true) {
+                                  loadUserData(); // 🔥 يحدث الاسم بس لو حصل تعديل
+                                }
+                              });
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF0A5C71),
@@ -133,7 +176,7 @@ class PersonalInfoScreen extends StatelessWidget {
                               ),
                             ),
                             child: const Text(
-                              'RESET ACCOUNT',
+                              'Edit Profile',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w900,
@@ -184,16 +227,16 @@ class PersonalInfoScreen extends StatelessWidget {
             ),
           ],
         ),
-        if (showEditIcon)
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFF0A5C71).withValues(alpha: 0.05),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.edit, size: 20, color: Color(0xFF0A5C71)),
-          ),
+        // if (showEditIcon)
+        //   Container(
+        //     width: 40,
+        //     height: 40,
+        //     decoration: BoxDecoration(
+        //       color: const Color(0xFF0A5C71).withValues(alpha: 0.05),
+        //       shape: BoxShape.circle,
+        //     ),
+        //     child: const Icon(Icons.edit, size: 20, color: Color(0xFF0A5C71)),
+        //   ),
       ],
     );
   }

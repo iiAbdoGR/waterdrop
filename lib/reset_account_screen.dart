@@ -1,8 +1,45 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'widgets/custom_bottom_nav.dart';
 
-class ResetAccountScreen extends StatelessWidget {
+class ResetAccountScreen extends StatefulWidget {
   const ResetAccountScreen({super.key});
+
+  @override
+  State<ResetAccountScreen> createState() => _ResetAccountScreenState();
+}
+
+class _ResetAccountScreenState extends State<ResetAccountScreen> {
+  final firstNameController = TextEditingController();
+  final lastNameController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    loadUserData();
+  }
+
+  Future<void> loadUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user!.uid)
+        .get();
+
+    final data = doc.data();
+
+    final fullName = data?['name'] ?? "";
+
+    final parts = fullName.split(" ");
+
+    firstNameController.text = parts.isNotEmpty ? parts[0] : "";
+    lastNameController.text = parts.length > 1 ? parts[1] : "";
+
+    emailController.text = user.email ?? "";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +93,7 @@ class ResetAccountScreen extends StatelessWidget {
                       ),
                       const Expanded(
                         child: Text(
-                          'Reset Account',
+                          'Edit Profile',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 30,
@@ -99,28 +136,33 @@ class ResetAccountScreen extends StatelessWidget {
                                   Expanded(
                                     child: _buildInputField(
                                       'FIRST NAME',
-                                      'Mayar',
+                                      '',
+                                      controller: firstNameController,
                                     ),
                                   ),
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: _buildInputField(
                                       'LAST NAME',
-                                      'Ahmed',
+                                      '',
+                                      controller: lastNameController,
                                     ),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 24),
                               _buildInputField(
-                                'CHANGE EMAIL',
-                                'mayar61134@gmail.com',
+                                'EMAIL ADDRESS',
+                                '',
+                                controller: emailController,
+                                readOnly: true, // 🔥 أهم سطر
                               ),
                               const SizedBox(height: 24),
                               _buildInputField(
                                 'CHANGE PASSWORD',
-                                '••••••••',
+                                '',
                                 obscureText: true,
+                                controller: passwordController,
                               ),
                             ],
                           ),
@@ -132,8 +174,32 @@ class ResetAccountScreen extends StatelessWidget {
                           width: double.infinity,
                           height: 60,
                           child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
+                            onPressed: () async {
+                              final user = FirebaseAuth.instance.currentUser;
+
+                              final fullName =
+                                  "${firstNameController.text.trim()} ${lastNameController.text.trim()}";
+
+                              // 🔥 تحديث الاسم بس لو مش فاضي
+                              if (firstNameController.text.isNotEmpty) {
+                                await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(user!.uid)
+                                    .update({'name': fullName});
+                              }
+
+                              if (user != null &&
+                                  passwordController.text.isNotEmpty) {
+                                try {
+                                  await user.updatePassword(
+                                    passwordController.text.trim(),
+                                  );
+                                } catch (e) {
+                                  // error
+                                }
+                              }
+
+                              Navigator.pop(context, true);
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF0A5C71),
@@ -142,7 +208,7 @@ class ResetAccountScreen extends StatelessWidget {
                               ),
                             ),
                             child: const Text(
-                              'RESET',
+                              'SAVE',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w900,
@@ -170,6 +236,8 @@ class ResetAccountScreen extends StatelessWidget {
     String label,
     String hint, {
     bool obscureText = false,
+    TextEditingController? controller,
+    bool readOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,7 +255,9 @@ class ResetAccountScreen extends StatelessWidget {
           ),
         ),
         TextField(
+          controller: controller,
           obscureText: obscureText,
+          readOnly: readOnly,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(
@@ -195,7 +265,9 @@ class ResetAccountScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
             filled: true,
-            fillColor: const Color(0xFF0A5C71).withValues(alpha: 0.05),
+            fillColor: readOnly
+                ? Colors.grey.withValues(alpha: 0.2)
+                : const Color(0xFF0A5C71).withValues(alpha: 0.05),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,

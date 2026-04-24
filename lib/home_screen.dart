@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:waterdrop/referesh.dart';
 import 'widgets/custom_bottom_nav.dart';
@@ -12,6 +14,29 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedDevice = 'Device A';
   bool _isDeviceDropdownOpen = false;
+  String? userName;
+  @override
+  void initState() {
+    super.initState();
+    loadUserName(); // 👈 هنا
+  }
+
+  Future<void> loadUserName() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .get();
+
+    final data = doc.data();
+
+    final fullName = data?['name'] ?? "";
+
+    setState(() {
+      userName = fullName.split(" ").first;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,8 +158,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 24),
 
                     // Greeting
-                    const Text(
-                      'Hello, Mayar!',
+                    Text(
+                      userName == null ? "Loading..." : "Hello, $userName!",
+
                       style: TextStyle(
                         fontSize: 32,
                         fontWeight: FontWeight.w900,
