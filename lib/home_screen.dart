@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:waterdrop/esp_service.dart';
 import 'package:waterdrop/referesh.dart';
 import 'widgets/custom_bottom_nav.dart';
 
@@ -14,6 +16,21 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedDevice = 'Device A';
   bool _isDeviceDropdownOpen = false;
+  bool isConnected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    loadConnectionState();
+  }
+
+  Future<void> loadConnectionState() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      isConnected = prefs.getBool('connected') ?? false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,8 +92,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Container(
                                   width: 8,
                                   height: 8,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.green,
+                                  decoration: BoxDecoration(
+                                    color: isConnected
+                                        ? Colors.green
+                                        : Colors.red,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -157,13 +176,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      'Real-time water status',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF0A5C71).withValues(alpha: 0.6),
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Real-time water status',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(
+                              0xFF0A5C71,
+                            ).withValues(alpha: 0.6),
+                          ),
+                        ),
+
+                        if (!isConnected)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              "Device not connected - showing saved data",
+                              style: TextStyle(
+                                color: Colors.red.shade700,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 24),
 

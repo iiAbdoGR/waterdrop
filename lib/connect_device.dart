@@ -1,7 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class ConnectDeviceScreen extends StatelessWidget {
+class ConnectDeviceScreen extends StatefulWidget {
   const ConnectDeviceScreen({super.key});
+
+  @override
+  State<ConnectDeviceScreen> createState() => _ConnectDeviceScreenState();
+}
+
+class _ConnectDeviceScreenState extends State<ConnectDeviceScreen> {
+  bool isConnected = false;
+  @override
+  void initState() {
+    super.initState();
+    loadConnectionState();
+  }
+
+  Future<void> loadConnectionState() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      isConnected = prefs.getBool('connected') ?? false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -131,43 +152,84 @@ class ConnectDeviceScreen extends StatelessWidget {
                   Container(
                     width: 12,
                     height: 12,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
+                    decoration: BoxDecoration(
+                      color: isConnected ? Colors.green : Colors.red,
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Not Connected',
-                    style: TextStyle(fontSize: 16, color: Color(0xFF0A5C71)),
+                  Text(
+                    isConnected ? 'Connected' : 'Not Connected',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF0A5C71),
+                    ),
                   ),
                 ],
               ),
               const Spacer(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 55,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/scan_devices');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0A5C71),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      height: 55,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/scan_devices');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0A5C71),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 3,
+                        ),
+                        child: const Text(
+                          'Scan for devices',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
-                    child: const Text(
-                      'Scan for devices',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+
+                    const SizedBox(height: 12),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 55,
+                      child: OutlinedButton(
+                        onPressed: () async {
+                          final prefs = await SharedPreferences.getInstance();
+
+                          await prefs.setBool('connected', false);
+
+                          Navigator.pushReplacementNamed(context, '/home');
+                        },
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(
+                            color: Color(0xFF0A5C71),
+                            width: 2,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: const Text(
+                          'Continue without device',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0A5C71),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
               const SizedBox(height: 30),

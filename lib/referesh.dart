@@ -35,7 +35,7 @@ class _RefreshScreenState extends State<RefreshScreen>
     // Simulate a refresh process then go back
     Timer(const Duration(milliseconds: 2500), () {
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       }
     });
   }

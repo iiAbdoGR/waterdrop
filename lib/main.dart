@@ -35,9 +35,17 @@ Future<void> main() async {
 
   if (user != null) {
     if (loginType == 'google') {
-      startScreen = const HomeScreen();
+      bool wasConnected = prefs.getBool('connected') ?? false;
+
+      startScreen = wasConnected
+          ? const HomeScreen()
+          : const ConnectDeviceScreen();
     } else if (loginType == 'email' && remember) {
-      startScreen = const HomeScreen();
+      bool wasConnected = prefs.getBool('connected') ?? false;
+
+      startScreen = wasConnected
+          ? const HomeScreen()
+          : const ConnectDeviceScreen();
     } else {
       await FirebaseAuth.instance.signOut();
       startScreen = const SplashScreen();
