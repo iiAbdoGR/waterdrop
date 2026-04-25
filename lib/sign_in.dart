@@ -36,12 +36,33 @@ class _SignInScreenState extends State<SignInScreen> {
 
     final user = userCred.user!;
     final firstName = (user.displayName ?? "").split(" ").first;
-    // 🔥 هنا أهم جزء
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-      'name': firstName, // 👈 الاسم من جوجل
-      'email': user.email,
-      'createdAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true)); // 👈 مهم عشان ميكسرش الداتا القديمة
+
+    final userDoc = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid);
+
+    final docSnapshot = await userDoc.get();
+
+    if (!docSnapshot.exists) {
+      await userDoc.set({
+        'name': firstName,
+        'email': user.email,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      await userDoc.collection('readings').add({
+        'ph': 7.0,
+        'temp': 25,
+        'tds': 100,
+        'turbidity': 1.0,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } else {
+      await userDoc.set({
+        'name': firstName,
+        'email': user.email,
+      }, SetOptions(merge: true));
+    }
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('loginType', 'google');

@@ -13,7 +13,7 @@ class _PreparingSensorsScreenState extends State<PreparingSensorsScreen> {
   void initState() {
     super.initState();
     Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/connect_device');
     });
   }
 

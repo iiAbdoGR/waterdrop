@@ -117,8 +117,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 email: _emailController.text.trim(),
                                 password: _passwordController.text.trim(),
                               );
-                          final uid = credential.user!.uid;
 
+                          final user = credential.user;
+                          final uid = user!.uid;
+
+                          // 🔵 1. إنشاء بيانات المستخدم
                           await FirebaseFirestore.instance
                               .collection('users')
                               .doc(uid)
@@ -128,7 +131,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 'createdAt': FieldValue.serverTimestamp(),
                               });
 
-                          await credential.user!.sendEmailVerification();
+                          // 🔥 2. إنشاء أول Reading (Dummy Data)
+                          await FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(uid)
+                              .collection('readings')
+                              .add({
+                                'ph': 7.0,
+                                'temp': 25,
+                                'tds': 100,
+                                'turbidity': 1.0,
+                                'timestamp': FieldValue.serverTimestamp(),
+                              });
+
+                          // ✉️ 3. إرسال verification
+                          await user.sendEmailVerification();
 
                           if (!mounted) return;
 
@@ -233,7 +250,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     } else if (label.contains("Email")) {
       hint = "Enter your email";
     } else if (label.contains("Confirm")) {
-      // 🔥 لازم تيجي قبل Password
       hint = "Confirm your password";
     } else if (label.contains("Password")) {
       hint = "Enter your password";

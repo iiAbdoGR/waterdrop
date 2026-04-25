@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:waterdrop/esp_service.dart';
 import 'package:waterdrop/referesh.dart';
 import 'widgets/custom_bottom_nav.dart';
+import 'package:waterdrop/utils/water_logic.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,6 +31,23 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       isConnected = prefs.getBool('connected') ?? false;
     });
+  }
+
+  Stream<Map<String, dynamic>?> getLatestReading() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const Stream.empty();
+
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('readings')
+        .orderBy('timestamp', descending: true)
+        .limit(1)
+        .snapshots()
+        .map((snapshot) {
+          if (snapshot.docs.isEmpty) return null;
+          return snapshot.docs.first.data();
+        });
   }
 
   @override
@@ -153,25 +171,35 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Greeting
-                    StreamBuilder<DocumentSnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(FirebaseAuth.instance.currentUser!.uid)
-                          .snapshots(),
-                      builder: (context, snapshot) {
-                        final data =
-                            snapshot.data?.data() as Map<String, dynamic>?;
-                        final fullName = data?['name'] ?? "User";
-                        final firstName = fullName.split(" ").first;
+                    Builder(
+                      builder: (context) {
+                        final user = FirebaseAuth.instance.currentUser;
 
-                        return Text(
-                          "Hello, $firstName!",
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF0A5C71),
-                          ),
+                        if (user == null) {
+                          return const Text("No user");
+                        }
+
+                        return StreamBuilder<DocumentSnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(user.uid)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            final data =
+                                snapshot.data?.data() as Map<String, dynamic>?;
+
+                            final fullName = data?['name'] ?? "User";
+                            final firstName = fullName.split(" ").first;
+
+                            return Text(
+                              "Hello, $firstName!",
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF0A5C71),
+                              ),
+                            );
+                          },
                         );
                       },
                     ),
@@ -374,53 +402,80 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Sensor Grid
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildSensorCard(
-                            'pH Level',
-                            '7.2',
-                            'Optimal',
-                            Icons.water_drop,
-                            const Color(0xFF4ECDC4),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildSensorCard(
-                            'Temperature',
-                            '24°C',
-                            'Normal',
-                            Icons.thermostat,
-                            const Color(0xFFFF9F1C),
-                          ),
-                        ),
-                      ],
-                    ),
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildSensorCard(
-                            'TDS',
-                            '120 ppm',
-                            'Good',
-                            Icons.waves,
-                            const Color(0xFF1CA3C6),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildSensorCard(
-                            'Turbidity',
-                            '1.5 NTU',
-                            'Clear',
-                            Icons.bolt,
-                            const Color(0xFF9D4EDD),
-                          ),
-                        ),
-                      ],
+                    StreamBuilder<Map<String, dynamic>?>(
+                      stream: getLatestReading(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        if (!snapshot.hasData) {
+                          return const Text("No data yet");
+                        }
+
+                        final data = snapshot.data!;
+
+                        final ph = data['ph'] ?? 0;
+                        final temp = data['temp'] ?? 0;
+                        final tds = data['tds'] ?? 0;
+                        final turbidity = data['turbidity'] ?? 0;
+
+                        return Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildSensorCard(
+                                    'pH Level',
+                                    '$ph',
+                                    getPhStatus(ph.toDouble()),
+                                    Icons.water_drop,
+                                    getPhColor(ph.toDouble()),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildSensorCard(
+                                    'Temperature',
+                                    '$temp°C',
+                                    getTempStatus(temp.toDouble()),
+                                    Icons.thermostat,
+                                    getTempColor(temp.toDouble()),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildSensorCard(
+                                    'TDS',
+                                    '$tds ppm',
+                                    getTdsStatus(tds.toDouble()),
+                                    Icons.waves,
+                                    getTdsColor(tds.toDouble()),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildSensorCard(
+                                    'Turbidity',
+                                    '$turbidity NTU',
+                                    getTurbidityStatus(turbidity.toDouble()),
+                                    Icons.bolt,
+                                    getTurbidityColor(turbidity.toDouble()),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 100), // Space for bottom nav
                   ],

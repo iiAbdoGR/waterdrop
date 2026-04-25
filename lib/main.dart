@@ -84,7 +84,6 @@ class _PureDropAppState extends State<PureDropApp> {
     return MaterialApp(
       title: 'Pure Drop',
       debugShowCheckedModeBanner: false,
-
       theme: ThemeData(
         primaryColor: const Color(0xFF0A5C71),
         fontFamily: 'Georgia', // Using a serif font to match the design
