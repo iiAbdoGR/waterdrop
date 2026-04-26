@@ -15,7 +15,6 @@ class HistoryScreen extends StatefulWidget {
 
 Stream<List<Map<String, dynamic>>> getHistory() {
   final user = FirebaseAuth.instance.currentUser;
-  final GlobalKey chartKey = GlobalKey();
   if (user == null) return const Stream.empty();
 
   return FirebaseFirestore.instance
@@ -27,30 +26,6 @@ Stream<List<Map<String, dynamic>>> getHistory() {
       .map((snapshot) {
         return snapshot.docs.map((doc) => doc.data()).toList();
       });
-}
-
-Future<void> exportData() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return;
-
-  final snapshot = await FirebaseFirestore.instance
-      .collection('users')
-      .doc(user.uid)
-      .collection('readings')
-      .get();
-
-  String csv = "ph,temp,tds,turbidity,timestamp\n";
-
-  for (var doc in snapshot.docs) {
-    final data = doc.data();
-
-    csv +=
-        "${data['ph']},"
-        "${data['temp']},"
-        "${data['tds']},"
-        "${data['turbidity']},"
-        "${data['timestamp']}\n";
-  }
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
