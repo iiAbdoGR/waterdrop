@@ -4,7 +4,6 @@ import 'sensors_screen.dart';
 import 'referesh.dart';
 import 'history_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'history_screen.dart';
 
 class SensorDetailScreen extends StatelessWidget {
   const SensorDetailScreen({super.key});
