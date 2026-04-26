@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'widgets/custom_bottom_nav.dart';
 import 'sensors_screen.dart';
 import 'referesh.dart';
+import 'history_screen.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'history_screen.dart';
 
 class SensorDetailScreen extends StatelessWidget {
   const SensorDetailScreen({super.key});
@@ -163,14 +166,45 @@ class SensorDetailScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.baseline,
                                 textBaseline: TextBaseline.alphabetic,
                                 children: [
-                                  Text(
-                                    sensor['value'] as String,
-                                    style: const TextStyle(
-                                      fontSize: 64,
-                                      fontWeight: FontWeight.w900,
-                                      color: Color(0xFF0A5C71),
-                                      letterSpacing: -2,
-                                    ),
+                                  StreamBuilder<List<Map<String, dynamic>>>(
+                                    stream: getHistory(),
+                                    builder: (context, snapshot) {
+                                      if (!snapshot.hasData ||
+                                          snapshot.data!.isEmpty) {
+                                        return const Text(
+                                          "0",
+                                          style: TextStyle(
+                                            fontSize: 64,
+                                            fontWeight: FontWeight.w900,
+                                            color: Color(0xFF0A5C71),
+                                          ),
+                                        );
+                                      }
+
+                                      final last = snapshot.data!.last;
+
+                                      double value;
+
+                                      if (sensor['id'] == 'ph') {
+                                        value = (last['ph'] ?? 0).toDouble();
+                                      } else if (sensor['id'] == 'temp') {
+                                        value = (last['temp'] ?? 0).toDouble();
+                                      } else if (sensor['id'] == 'tds') {
+                                        value = (last['tds'] ?? 0).toDouble();
+                                      } else {
+                                        value = (last['turbidity'] ?? 0)
+                                            .toDouble();
+                                      }
+
+                                      return Text(
+                                        value.toStringAsFixed(1),
+                                        style: const TextStyle(
+                                          fontSize: 64,
+                                          fontWeight: FontWeight.w900,
+                                          color: Color(0xFF0A5C71),
+                                        ),
+                                      );
+                                    },
                                   ),
                                   if ((sensor['unit'] as String)
                                       .isNotEmpty) ...[
@@ -265,13 +299,168 @@ class SensorDetailScreen extends StatelessWidget {
                                         ),
                                       ),
                                     ),
-                                    // Graph curve (mock)
-                                    CustomPaint(
-                                      size: const Size(double.infinity, 160),
-                                      painter: SensorGraphPainter(
-                                        color: sensor['color'] as Color,
-                                      ),
+                                    StreamBuilder<List<Map<String, dynamic>>>(
+                                      stream: getHistory(),
+                                      builder: (context, snapshot) {
+                                        if (!snapshot.hasData ||
+                                            snapshot.data!.isEmpty) {
+                                          return const Center(
+                                            child: Text("No data"),
+                                          );
+                                        }
+
+                                        final readings = snapshot.data!
+                                            .take(10)
+                                            .toList()
+                                            .toList();
+
+                                        List<FlSpot> spots = [];
+
+                                        for (
+                                          int i = 0;
+                                          i < readings.length;
+                                          i++
+                                        ) {
+                                          double value;
+
+                                          if (sensor['id'] == 'ph') {
+                                            value = (readings[i]['ph'] ?? 0)
+                                                .toDouble();
+                                          } else if (sensor['id'] == 'temp') {
+                                            value = (readings[i]['temp'] ?? 0)
+                                                .toDouble();
+                                          } else if (sensor['id'] == 'tds') {
+                                            value = (readings[i]['tds'] ?? 0)
+                                                .toDouble();
+                                          } else {
+                                            value =
+                                                (readings[i]['turbidity'] ?? 0)
+                                                    .toDouble();
+                                          }
+
+                                          spots.add(
+                                            FlSpot(i.toDouble(), value),
+                                          );
+                                        }
+
+                                        // 🔥 ديناميك رينج
+                                        double minY =
+                                            spots
+                                                .map((e) => e.y)
+                                                .reduce(
+                                                  (a, b) => a < b ? a : b,
+                                                ) -
+                                            1;
+                                        double maxY =
+                                            spots
+                                                .map((e) => e.y)
+                                                .reduce(
+                                                  (a, b) => a > b ? a : b,
+                                                ) +
+                                            1;
+
+                                        return SizedBox(
+                                          height: 160,
+                                          child: LineChart(
+                                            LineChartData(
+                                              minY: minY,
+                                              maxY: maxY,
+
+                                              gridData: FlGridData(
+                                                show: true,
+                                                drawVerticalLine: false,
+                                                horizontalInterval:
+                                                    (maxY - minY) / 4,
+                                                getDrawingHorizontalLine:
+                                                    (value) {
+                                                      return FlLine(
+                                                        color:
+                                                            const Color(
+                                                              0xFF0A5C71,
+                                                            ).withValues(
+                                                              alpha: 0.05,
+                                                            ),
+                                                        strokeWidth: 1,
+                                                      );
+                                                    },
+                                              ),
+
+                                              titlesData: FlTitlesData(
+                                                show: false,
+                                              ),
+
+                                              borderData: FlBorderData(
+                                                show: false,
+                                              ),
+
+                                              lineBarsData: [
+                                                LineChartBarData(
+                                                  spots: spots,
+                                                  isCurved: true,
+                                                  curveSmoothness: 0.5,
+
+                                                  gradient: LinearGradient(
+                                                    colors: [
+                                                      (sensor['color']
+                                                          as Color),
+                                                      (sensor['color'] as Color)
+                                                          .withValues(
+                                                            alpha: 0.4,
+                                                          ),
+                                                    ],
+                                                  ),
+
+                                                  barWidth: 5,
+
+                                                  dotData: FlDotData(
+                                                    show: true,
+                                                    getDotPainter:
+                                                        (
+                                                          spot,
+                                                          percent,
+                                                          bar,
+                                                          index,
+                                                        ) {
+                                                          return FlDotCirclePainter(
+                                                            radius: 4,
+                                                            color: Colors.white,
+                                                            strokeWidth: 2,
+                                                            strokeColor:
+                                                                sensor['color']
+                                                                    as Color,
+                                                          );
+                                                        },
+                                                  ),
+
+                                                  belowBarData: BarAreaData(
+                                                    show: true,
+                                                    gradient: LinearGradient(
+                                                      begin:
+                                                          Alignment.topCenter,
+                                                      end: Alignment
+                                                          .bottomCenter,
+                                                      colors: [
+                                                        (sensor['color']
+                                                                as Color)
+                                                            .withValues(
+                                                              alpha: 0.3,
+                                                            ),
+                                                        (sensor['color']
+                                                                as Color)
+                                                            .withValues(
+                                                              alpha: 0.05,
+                                                            ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     ),
+                                    // Graph curve (mock)
                                   ],
                                 ),
                               ),
@@ -364,74 +553,4 @@ class SensorDetailScreen extends StatelessWidget {
       bottomNavigationBar: const CustomBottomNav(current: 'sensors'),
     );
   }
-}
-
-class SensorGraphPainter extends CustomPainter {
-  final Color color;
-
-  SensorGraphPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
-      ..strokeCap = StrokeCap.round;
-
-    final path = Path();
-    path.moveTo(0, size.height * 0.5);
-    path.quadraticBezierTo(
-      size.width * 0.125,
-      size.height * 0.4,
-      size.width * 0.25,
-      size.height * 0.6,
-    );
-    path.quadraticBezierTo(
-      size.width * 0.375,
-      size.height * 0.8,
-      size.width * 0.5,
-      size.height * 0.5,
-    );
-    path.quadraticBezierTo(
-      size.width * 0.625,
-      size.height * 0.2,
-      size.width * 0.75,
-      size.height * 0.4,
-    );
-    path.quadraticBezierTo(
-      size.width * 0.875,
-      size.height * 0.6,
-      size.width,
-      size.height * 0.3,
-    );
-
-    canvas.drawPath(path, paint);
-
-    // Draw points
-    final pointPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
-
-    final borderPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-
-    final points = [
-      Offset(0, size.height * 0.5),
-      Offset(size.width * 0.25, size.height * 0.6),
-      Offset(size.width * 0.5, size.height * 0.5),
-      Offset(size.width * 0.75, size.height * 0.4),
-      Offset(size.width, size.height * 0.3),
-    ];
-
-    for (var point in points) {
-      canvas.drawCircle(point, 4, pointPaint);
-      canvas.drawCircle(point, 4, borderPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

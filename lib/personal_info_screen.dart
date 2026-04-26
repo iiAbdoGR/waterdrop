@@ -15,29 +15,12 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   String email = "";
 
   @override
-  void initState() {
-    super.initState();
-    loadUserData();
-  }
-
-  Future<void> loadUserData() async {
+  Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
-    final doc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user!.uid)
-        .get();
-
-    final data = doc.data();
-
-    setState(() {
-      name = (data?['name'] ?? "");
-      email = user.email ?? "";
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+    if (user == null) {
+      return const Scaffold(body: Center(child: Text("No user")));
+    }
     return Scaffold(
       backgroundColor: const Color(0xFFE6F7FC),
       body: Stack(
@@ -108,51 +91,75 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                     padding: const EdgeInsets.all(24),
                     child: Column(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            borderRadius: BorderRadius.circular(32),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.5),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              _buildInfoRow(
-                                'FULL NAME',
-                                name.isEmpty ? "Loading..." : name,
-                                false,
-                              ),
-                              Divider(
-                                color: const Color(
-                                  0xFF0A5C71,
-                                ).withValues(alpha: 0.1),
-                                height: 32,
-                              ),
-                              _buildInfoRow(
-                                'EMAIL ADDRESS',
-                                email.isEmpty ? "Loading..." : email,
-                                true,
-                              ),
-                              Divider(
-                                color: const Color(
-                                  0xFF0A5C71,
-                                ).withValues(alpha: 0.1),
-                                height: 32,
-                              ),
-                              _buildInfoRow('PASSWORD', '••••••••', true),
-                            ],
-                          ),
-                        ),
+                        StreamBuilder<DocumentSnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(user.uid)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            }
 
+                            final data =
+                                snapshot.data?.data()
+                                    as Map<String, dynamic>? ??
+                                {};
+                            final name = data?['name'] ?? "";
+                            final email = user.email ?? "";
+
+                            return Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.8),
+                                borderRadius: BorderRadius.circular(32),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  _buildInfoRow(
+                                    'FULL NAME',
+                                    name.isEmpty ? "Loading..." : name,
+                                    false,
+                                  ),
+                                  Divider(
+                                    color: const Color(
+                                      0xFF0A5C71,
+                                    ).withValues(alpha: 0.1),
+                                    height: 32,
+                                  ),
+                                  _buildInfoRow(
+                                    'EMAIL ADDRESS',
+                                    email.isEmpty ? "Loading..." : email,
+                                    true,
+                                  ),
+                                  Divider(
+                                    color: const Color(
+                                      0xFF0A5C71,
+                                    ).withValues(alpha: 0.1),
+                                    height: 32,
+                                  ),
+                                  _buildInfoRow(
+                                    'PASSWORD',
+                                    'Change Password',
+                                    true,
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                         const SizedBox(height: 40),
 
                         SizedBox(
@@ -163,11 +170,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                               Navigator.pushNamed(
                                 context,
                                 '/reset_account',
-                              ).then((result) {
-                                if (result == true) {
-                                  loadUserData(); // 🔥 يحدث الاسم بس لو حصل تعديل
-                                }
-                              });
+                              ).then((result) {});
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF0A5C71),

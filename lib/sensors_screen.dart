@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:waterdrop/utils/water_logic.dart';
 import 'home_screen.dart';
 import 'widgets/custom_bottom_nav.dart';
 import 'referesh.dart';
+import 'history_screen.dart';
 
 class SensorsScreen extends StatelessWidget {
   const SensorsScreen({super.key});
@@ -11,13 +13,14 @@ class SensorsScreen extends StatelessWidget {
     final sensors = [
       {
         'id': 'ph',
-        'name': 'pH Level',
+        'name': 'PH Level',
         'value': '7.2',
         'unit': '',
         'status': 'Optimal',
         'color': const Color(0xFF4ECDC4),
         'icon': Icons.water_drop,
-        'desc': 'Measures the acidity or alkalinity of the water.',
+        'desc':
+            'Measures water acidity. Safe range: 6.5 – 8. Values outside this range may harm water quality.',
       },
       {
         'id': 'temp',
@@ -27,7 +30,8 @@ class SensorsScreen extends StatelessWidget {
         'status': 'Normal',
         'color': const Color(0xFFFF9F1C),
         'icon': Icons.thermostat,
-        'desc': 'Current water temperature.',
+        'desc':
+            'Indicates water temperature. High temperatures may affect water quality and system performance.',
       },
       {
         'id': 'tds',
@@ -37,7 +41,8 @@ class SensorsScreen extends StatelessWidget {
         'status': 'Good',
         'color': const Color(0xFF1CA3C6),
         'icon': Icons.grain,
-        'desc': 'Total Dissolved Solids in the water.',
+        'desc':
+            'Represents dissolved solids in water. Lower values indicate better purity.',
       },
       {
         'id': 'turbidity',
@@ -47,7 +52,8 @@ class SensorsScreen extends StatelessWidget {
         'status': 'Clear',
         'color': const Color(0xFF9D4EDD),
         'icon': Icons.waves,
-        'desc': 'Clarity of the water.',
+        'desc':
+            'Measures water clarity. High turbidity may indicate contamination.',
       },
     ];
 
@@ -234,50 +240,147 @@ class SensorsScreen extends StatelessWidget {
                                           CrossAxisAlignment.baseline,
                                       textBaseline: TextBaseline.alphabetic,
                                       children: [
-                                        Text(
-                                          sensor['value'] as String,
-                                          style: const TextStyle(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.w900,
-                                            color: Color(0xFF0A5C71),
-                                          ),
+                                        StreamBuilder<
+                                          List<Map<String, dynamic>>
+                                        >(
+                                          stream: getHistory(),
+                                          builder: (context, snapshot) {
+                                            if (!snapshot.hasData ||
+                                                snapshot.data!.isEmpty) {
+                                              return const Text(
+                                                "0",
+                                                style: TextStyle(
+                                                  fontSize: 24,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: Color(0xFF0A5C71),
+                                                ),
+                                              );
+                                            }
+
+                                            final last = snapshot.data!.last;
+
+                                            double value;
+
+                                            // 🟢 الأول نجيب القيمة
+                                            if (sensor['id'] == 'ph') {
+                                              value = (last['ph'] ?? 0)
+                                                  .toDouble();
+                                            } else if (sensor['id'] == 'temp') {
+                                              value = (last['temp'] ?? 0)
+                                                  .toDouble();
+                                            } else if (sensor['id'] == 'tds') {
+                                              value = (last['tds'] ?? 0)
+                                                  .toDouble();
+                                            } else {
+                                              value = (last['turbidity'] ?? 0)
+                                                  .toDouble();
+                                            }
+
+                                            // 🟢 بعد كدا نحسب الحالة
+                                            String status;
+                                            Color statusColor;
+
+                                            if (sensor['id'] == 'ph') {
+                                              status = getPhStatus(value);
+                                              statusColor = getPhColor(value);
+                                            } else if (sensor['id'] == 'temp') {
+                                              status = getTempStatus(value);
+                                              statusColor = getTempColor(value);
+                                            } else if (sensor['id'] == 'tds') {
+                                              status = getTdsStatus(value);
+                                              statusColor = getTdsColor(value);
+                                            } else {
+                                              status = getTurbidityStatus(
+                                                value,
+                                              );
+                                              statusColor = getTurbidityColor(
+                                                value,
+                                              );
+                                            }
+
+                                            return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment
+                                                          .baseline,
+                                                  textBaseline:
+                                                      TextBaseline.alphabetic,
+                                                  children: [
+                                                    Text(
+                                                      value.toStringAsFixed(1),
+                                                      style: const TextStyle(
+                                                        fontSize: 24,
+                                                        fontWeight:
+                                                            FontWeight.w900,
+                                                        color: Color(
+                                                          0xFF0A5C71,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    if ((sensor['unit']
+                                                            as String)
+                                                        .isNotEmpty) ...[
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        sensor['unit']
+                                                            as String,
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color:
+                                                              const Color(
+                                                                0xFF0A5C71,
+                                                              ).withValues(
+                                                                alpha: 0.5,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 4),
+
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 4,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: statusColor
+                                                        .withValues(
+                                                          alpha: 0.15,
+                                                        ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    status,
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: statusColor,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            );
+                                          },
                                         ),
-                                        if ((sensor['unit'] as String)
-                                            .isNotEmpty) ...[
-                                          const SizedBox(width: 2),
-                                          Text(
-                                            sensor['unit'] as String,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                              color: const Color(
-                                                0xFF0A5C71,
-                                              ).withValues(alpha: 0.5),
-                                            ),
-                                          ),
-                                        ],
                                       ],
                                     ),
                                     const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: (sensor['color'] as Color)
-                                            .withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        sensor['status'] as String,
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: sensor['color'] as Color,
-                                        ),
-                                      ),
-                                    ),
                                   ],
                                 ),
                               ],

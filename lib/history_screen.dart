@@ -1,6 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:waterdrop/utils/export.dart';
 import 'widgets/custom_bottom_nav.dart';
 import 'home_screen.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -9,8 +13,49 @@ class HistoryScreen extends StatefulWidget {
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
 
+Stream<List<Map<String, dynamic>>> getHistory() {
+  final user = FirebaseAuth.instance.currentUser;
+  final GlobalKey chartKey = GlobalKey();
+  if (user == null) return const Stream.empty();
+
+  return FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .collection('readings')
+      .orderBy('timestamp', descending: false)
+      .snapshots()
+      .map((snapshot) {
+        return snapshot.docs.map((doc) => doc.data()).toList();
+      });
+}
+
+Future<void> exportData() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+
+  final snapshot = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .collection('readings')
+      .get();
+
+  String csv = "ph,temp,tds,turbidity,timestamp\n";
+
+  for (var doc in snapshot.docs) {
+    final data = doc.data();
+
+    csv +=
+        "${data['ph']},"
+        "${data['temp']},"
+        "${data['tds']},"
+        "${data['turbidity']},"
+        "${data['timestamp']}\n";
+  }
+}
+
 class _HistoryScreenState extends State<HistoryScreen> {
   String _selectedTab = 'pH';
+  final GlobalKey chartKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -223,14 +268,53 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                             CrossAxisAlignment.baseline,
                                         textBaseline: TextBaseline.alphabetic,
                                         children: [
-                                          const Text(
-                                            '7.2',
-                                            style: TextStyle(
-                                              fontSize: 48,
-                                              fontWeight: FontWeight.w900,
-                                              color: Color(0xFF0A5C71),
-                                              letterSpacing: -2,
-                                            ),
+                                          StreamBuilder<
+                                            List<Map<String, dynamic>>
+                                          >(
+                                            stream: getHistory(),
+                                            builder: (context, snapshot) {
+                                              if (!snapshot.hasData ||
+                                                  snapshot.data!.isEmpty) {
+                                                return const Text(
+                                                  "0",
+                                                  style: TextStyle(
+                                                    fontSize: 48,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: Color(0xFF0A5C71),
+                                                  ),
+                                                );
+                                              }
+
+                                              final readings = snapshot.data!;
+
+                                              double avg = 0;
+
+                                              for (var r in readings) {
+                                                if (_selectedTab == 'pH') {
+                                                  avg += (r['ph'] ?? 0);
+                                                } else if (_selectedTab ==
+                                                    'Temperature') {
+                                                  avg += (r['temp'] ?? 0);
+                                                } else if (_selectedTab ==
+                                                    'TDS') {
+                                                  avg += (r['tds'] ?? 0);
+                                                } else {
+                                                  avg += (r['turbidity'] ?? 0);
+                                                }
+                                              }
+
+                                              avg = avg / readings.length;
+
+                                              return Text(
+                                                avg.toStringAsFixed(1),
+                                                style: const TextStyle(
+                                                  fontSize: 48,
+                                                  fontWeight: FontWeight.w900,
+                                                  color: Color(0xFF0A5C71),
+                                                  letterSpacing: -2,
+                                                ),
+                                              );
+                                            },
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
@@ -251,35 +335,94 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       ),
                                     ],
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(
-                                        0xFF4ECDC4,
-                                      ).withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: const Row(
-                                      children: [
-                                        Icon(
-                                          Icons.arrow_upward,
-                                          size: 14,
-                                          color: Color(0xFF4ECDC4),
+                                  StreamBuilder<List<Map<String, dynamic>>>(
+                                    stream: getHistory(),
+                                    builder: (context, snapshot) {
+                                      if (!snapshot.hasData ||
+                                          snapshot.data!.length < 2) {
+                                        return const SizedBox(); // مفيش بيانات كفاية
+                                      }
+
+                                      final readings = snapshot.data!;
+                                      final last = readings.last;
+                                      final prev =
+                                          readings[readings.length - 2];
+
+                                      double current;
+                                      double previous;
+
+                                      if (_selectedTab == 'pH') {
+                                        current = (last['ph'] ?? 0).toDouble();
+                                        previous = (prev['ph'] ?? 0).toDouble();
+                                      } else if (_selectedTab ==
+                                          'Temperature') {
+                                        current = (last['temp'] ?? 0)
+                                            .toDouble();
+                                        previous = (prev['temp'] ?? 0)
+                                            .toDouble();
+                                      } else if (_selectedTab == 'TDS') {
+                                        current = (last['tds'] ?? 0).toDouble();
+                                        previous = (prev['tds'] ?? 0)
+                                            .toDouble();
+                                      } else {
+                                        current = (last['turbidity'] ?? 0)
+                                            .toDouble();
+                                        previous = (prev['turbidity'] ?? 0)
+                                            .toDouble();
+                                      }
+
+                                      double percent = 0;
+                                      if (previous != 0) {
+                                        percent =
+                                            ((current - previous) / previous) *
+                                            100;
+                                      }
+
+                                      final isUp = percent >= 0;
+
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
                                         ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          '2.4%',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF4ECDC4),
+                                        decoration: BoxDecoration(
+                                          color: isUp
+                                              ? const Color(
+                                                  0xFF4ECDC4,
+                                                ).withValues(alpha: 0.1)
+                                              : Colors.red.withValues(
+                                                  alpha: 0.1,
+                                                ),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
                                           ),
                                         ),
-                                      ],
-                                    ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              isUp
+                                                  ? Icons.arrow_upward
+                                                  : Icons.arrow_downward,
+                                              size: 14,
+                                              color: isUp
+                                                  ? const Color(0xFF4ECDC4)
+                                                  : Colors.red,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '${percent.abs().toStringAsFixed(1)}%',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: isUp
+                                                    ? const Color(0xFF4ECDC4)
+                                                    : Colors.red,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
@@ -305,9 +448,176 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       ),
                                     ),
                                     // Graph curve (mock)
-                                    CustomPaint(
-                                      size: const Size(double.infinity, 160),
-                                      painter: GraphPainter(),
+                                    StreamBuilder<List<Map<String, dynamic>>>(
+                                      stream: getHistory(),
+                                      builder: (context, snapshot) {
+                                        if (!snapshot.hasData ||
+                                            snapshot.data!.isEmpty) {
+                                          return const Center(
+                                            child: Text("No data"),
+                                          );
+                                        }
+
+                                        final readings = snapshot.data!
+                                            .take(6)
+                                            .toList();
+                                        Color chartColor;
+
+                                        if (_selectedTab == 'pH') {
+                                          chartColor = const Color(0xFF4ECDC4);
+                                        } else if (_selectedTab ==
+                                            'Temperature') {
+                                          chartColor = const Color(0xFFFF9F1C);
+                                        } else if (_selectedTab == 'TDS') {
+                                          chartColor = const Color(0xFF1CA3C6);
+                                        } else {
+                                          chartColor = const Color(0xFF9D4EDD);
+                                        }
+                                        double minY = readings
+                                            .map(
+                                              (r) => (_selectedTab == 'pH'
+                                                  ? r['ph']
+                                                  : _selectedTab ==
+                                                        'Temperature'
+                                                  ? r['temp']
+                                                  : _selectedTab == 'TDS'
+                                                  ? r['tds']
+                                                  : r['turbidity']),
+                                            )
+                                            .reduce((a, b) => a < b ? a : b)
+                                            .toDouble();
+
+                                        double maxY = readings
+                                            .map(
+                                              (r) => (_selectedTab == 'pH'
+                                                  ? r['ph']
+                                                  : _selectedTab ==
+                                                        'Temperature'
+                                                  ? r['temp']
+                                                  : _selectedTab == 'TDS'
+                                                  ? r['tds']
+                                                  : r['turbidity']),
+                                            )
+                                            .reduce((a, b) => a > b ? a : b)
+                                            .toDouble();
+
+                                        minY -= 0.5;
+                                        maxY += 0.5;
+
+                                        if (minY == maxY) {
+                                          minY -= 1;
+                                          maxY += 1;
+                                        }
+
+                                        List<FlSpot> spots = [];
+
+                                        for (
+                                          int i = 0;
+                                          i < readings.length;
+                                          i++
+                                        ) {
+                                          double value;
+
+                                          if (_selectedTab == 'pH') {
+                                            value = (readings[i]['ph'] ?? 0)
+                                                .toDouble();
+                                          } else if (_selectedTab ==
+                                              'Temperature') {
+                                            value = (readings[i]['temp'] ?? 0)
+                                                .toDouble();
+                                          } else if (_selectedTab == 'TDS') {
+                                            value = (readings[i]['tds'] ?? 0)
+                                                .toDouble();
+                                          } else {
+                                            value =
+                                                (readings[i]['turbidity'] ?? 0)
+                                                    .toDouble();
+                                          }
+
+                                          spots.add(
+                                            FlSpot(i.toDouble(), value),
+                                          );
+                                        }
+
+                                        return RepaintBoundary(
+                                          key: chartKey,
+                                          child: SizedBox(
+                                            height: 160,
+
+                                            child: LineChart(
+                                              LineChartData(
+                                                minY: minY,
+                                                maxY: maxY,
+                                                gridData: FlGridData(
+                                                  show: true,
+                                                ),
+                                                titlesData: FlTitlesData(
+                                                  show: false,
+                                                ),
+                                                borderData: FlBorderData(
+                                                  show: false,
+                                                ),
+                                                lineBarsData: [
+                                                  LineChartBarData(
+                                                    spots: spots,
+                                                    isCurved: true,
+                                                    curveSmoothness: 0.4,
+
+                                                    gradient: LinearGradient(
+                                                      colors: [
+                                                        chartColor,
+                                                        chartColor.withValues(
+                                                          alpha: 0.2,
+                                                        ),
+                                                      ],
+                                                    ),
+
+                                                    barWidth: 4,
+
+                                                    dotData: FlDotData(
+                                                      show: true,
+                                                      getDotPainter:
+                                                          (
+                                                            spot,
+                                                            percent,
+                                                            bar,
+                                                            index,
+                                                          ) {
+                                                            return FlDotCirclePainter(
+                                                              radius: 4,
+                                                              color:
+                                                                  Colors.white,
+                                                              strokeWidth: 2,
+                                                              strokeColor:
+                                                                  chartColor,
+                                                            );
+                                                          },
+                                                    ),
+
+                                                    belowBarData: BarAreaData(
+                                                      show: true,
+                                                      gradient: LinearGradient(
+                                                        begin:
+                                                            Alignment.topCenter,
+                                                        end: Alignment
+                                                            .bottomCenter,
+                                                        colors: [
+                                                          chartColor.withValues(
+                                                            alpha: 0.3,
+                                                          ),
+                                                          chartColor.withValues(
+                                                            alpha: 0.05,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ],
                                 ),
@@ -346,15 +656,50 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ),
 
                         const SizedBox(height: 24),
-                        Text(
-                          'Last updated : 15 minutes ago',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(
-                              0xFF0A5C71,
-                            ).withValues(alpha: 0.6),
-                          ),
+                        StreamBuilder<List<Map<String, dynamic>>>(
+                          stream: getHistory(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                              return const Text("No updates yet");
+                            }
+
+                            final readings = snapshot.data!;
+                            final last = readings.last;
+
+                            final timestamp = last['timestamp'] as Timestamp?;
+                            if (timestamp == null) {
+                              return const Text("Updating...");
+                            }
+
+                            final now = DateTime.now();
+                            final diff = now.difference(timestamp.toDate());
+
+                            String text;
+
+                            if (diff.inSeconds < 60) {
+                              text = "just now";
+                            } else if (diff.inMinutes < 60) {
+                              final m = diff.inMinutes;
+                              text = m == 1 ? "1 minute ago" : "$m minutes ago";
+                            } else if (diff.inHours < 24) {
+                              final h = diff.inHours;
+                              text = h == 1 ? "1 hour ago" : "$h hours ago";
+                            } else {
+                              final d = diff.inDays;
+                              text = d == 1 ? "1 day ago" : "$d days ago";
+                            }
+
+                            return Text(
+                              "Last updated: $text",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(
+                                  0xFF0A5C71,
+                                ).withValues(alpha: 0.6),
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(height: 24),
 
@@ -404,33 +749,39 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.6),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: const Color(
-                                      0xFF0A5C71,
-                                    ).withValues(alpha: 0.1),
-                                  ),
-                                ),
-                                child: const Column(
-                                  children: [
-                                    Icon(
-                                      Icons.upload,
-                                      color: Color(0xFF0A5C71),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () async {
+                                  await exportChartAsPDF(chartKey);
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.6),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: const Color(
+                                        0xFF0A5C71,
+                                      ).withValues(alpha: 0.1),
                                     ),
-                                    SizedBox(height: 8),
-                                    Text(
-                                      'Export',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
+                                  ),
+                                  child: const Column(
+                                    children: [
+                                      Icon(
+                                        Icons.upload,
                                         color: Color(0xFF0A5C71),
                                       ),
-                                    ),
-                                  ],
+                                      SizedBox(height: 8),
+                                      Text(
+                                        'Export',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF0A5C71),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
