@@ -1,10 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-//import 'package:waterdrop/esp_service.dart';
-import 'package:waterdrop/referesh.dart';
 import 'widgets/custom_bottom_nav.dart';
+import 'utils/esp_service.dart';
 import 'package:waterdrop/utils/water_logic.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,23 +12,50 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  String _selectedDevice = 'Device A';
-  bool _isDeviceDropdownOpen = false;
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool isConnected = false;
-
+  double temp = 0;
+  double ph = 0;
+  double turb = 0;
+  int tds = 0;
+  final ESPService espService = ESPService();
   @override
   void initState() {
     super.initState();
-    loadConnectionState();
+    WidgetsBinding.instance.addObserver(this);
+
+    espService.onConnectionChanged = (connected) {
+      if (!mounted) return;
+      setState(() => isConnected = connected);
+    };
+
+    espService.onData = (data) {
+      if (!mounted) return;
+
+      setState(() {
+        temp = (data['temp'] ?? 0).toDouble();
+        ph = (data['ph'] ?? 0).toDouble();
+        tds = (data['tds'] ?? 0).toInt();
+        turb = (data['turb'] ?? 0).toDouble();
+      });
+    };
+
+    espService.connect(); // 🔥 بدل checkConnection
   }
 
-  Future<void> loadConnectionState() async {
-    final prefs = await SharedPreferences.getInstance();
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      espService.connect();
+    }
+  }
 
-    setState(() {
-      isConnected = prefs.getBool('connected') ?? false;
-    });
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    espService.disconnect();
+
+    super.dispose();
   }
 
   Stream<Map<String, dynamic>?> getLatestReading() {
@@ -78,97 +103,91 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        // 🔴 Status Box
                         GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _isDeviceDropdownOpen = !_isDeviceDropdownOpen;
-                            });
+                          onTap: () async {
+                            Navigator.pushNamed(
+                              context,
+                              '/connect_device',
+                            ); // اختياري
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
-                              vertical: 8,
+                              vertical: 10,
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.9),
                               borderRadius: BorderRadius.circular(24),
-                              border: Border.all(
-                                color: const Color(
-                                  0xFF0A5C71,
-                                ).withValues(alpha: .1),
-                              ),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
                                 ),
                               ],
                             ),
                             child: Row(
                               children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: isConnected
-                                        ? Colors.green
-                                        : Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
+                                Icon(
+                                  isConnected
+                                      ? Icons.check_circle
+                                      : Icons.error,
+                                  color: isConnected
+                                      ? Colors.green
+                                      : Colors.red,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  _selectedDevice,
+                                  isConnected ? "Connected" : "Not Connected",
                                   style: const TextStyle(
                                     color: Color(0xFF0A5C71),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  _isDeviceDropdownOpen
-                                      ? Icons.keyboard_arrow_up
-                                      : Icons.keyboard_arrow_down,
-                                  color: const Color(0xFF0A5C71),
-                                  size: 20,
-                                ),
                               ],
                             ),
                           ),
                         ),
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
+
+                        // 🔵 Refresh + Button
+                        Row(
+                          children: [
+                            // 🔄 Refresh (رجعناه شكله القديم)
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.refresh,
-                              color: Color(0xFF0A5C71),
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const RefreshScreen(),
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.refresh,
+                                  color: Color(0xFF0A5C71),
+                                  size: 20,
                                 ),
-                              );
-                            },
-                          ),
+                                onPressed: () {
+                                  Navigator.pushNamed(context, '/refresh');
+                                },
+                              ),
+                            ),
+
+                            const SizedBox(width: 10),
+
+                            // 🔘 Connect / Change
+                          ],
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 24),
 
                     Builder(
@@ -217,18 +236,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ).withValues(alpha: 0.6),
                           ),
                         ),
-
-                        if (!isConnected)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              "Device not connected - showing saved data",
-                              style: TextStyle(
-                                color: Colors.red.shade700,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -403,161 +410,135 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 24),
 
                     const SizedBox(height: 16),
-                    StreamBuilder<Map<String, dynamic>?>(
-                      stream: getLatestReading(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
 
-                        if (!snapshot.hasData) {
-                          return const Text("No data yet");
-                        }
+                    // 🔥 هنا نحط الكود الجديد
+                    isConnected
+                        ? Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildSensorCard(
+                                      'pH Level',
+                                      ph.toStringAsFixed(2),
+                                      getPhStatus(ph),
+                                      Icons.water_drop,
+                                      getPhColor(ph),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _buildSensorCard(
+                                      'Temperature',
+                                      '${temp.toStringAsFixed(1)}°C',
+                                      getTempStatus(temp),
+                                      Icons.thermostat,
+                                      getTempColor(temp),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildSensorCard(
+                                      'TDS',
+                                      '$tds ppm',
+                                      getTdsStatus(tds.toDouble()),
+                                      Icons.waves,
+                                      getTdsColor(tds.toDouble()),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _buildSensorCard(
+                                      'Turbidity',
+                                      '${turb.toStringAsFixed(2)} NTU',
+                                      getTurbidityStatus(turb),
+                                      Icons.bolt,
+                                      getTurbidityColor(turb),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          )
+                        : StreamBuilder<Map<String, dynamic>?>(
+                            stream: getLatestReading(),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData || snapshot.data == null) {
+                                return const Text("No data yet");
+                              }
 
-                        final data = snapshot.data!;
+                              final data = snapshot.data!;
 
-                        final ph = data['ph'] ?? 0;
-                        final temp = data['temp'] ?? 0;
-                        final tds = data['tds'] ?? 0;
-                        final turbidity = data['turbidity'] ?? 0;
+                              final ph = data['ph'] ?? 0;
+                              final temp = data['temp'] ?? 0;
+                              final tds = data['tds'] ?? 0;
+                              final turbidity = data['turbidity'] ?? 0;
 
-                        return Column(
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildSensorCard(
-                                    'pH Level',
-                                    '$ph',
-                                    getPhStatus(ph.toDouble()),
-                                    Icons.water_drop,
-                                    getPhColor(ph.toDouble()),
+                              return Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildSensorCard(
+                                          'pH Level',
+                                          '$ph',
+                                          getPhStatus(ph.toDouble()),
+                                          Icons.water_drop,
+                                          getPhColor(ph.toDouble()),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: _buildSensorCard(
+                                          'Temperature',
+                                          '$temp°C',
+                                          getTempStatus(temp.toDouble()),
+                                          Icons.thermostat,
+                                          getTempColor(temp.toDouble()),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: _buildSensorCard(
-                                    'Temperature',
-                                    '$temp°C',
-                                    getTempStatus(temp.toDouble()),
-                                    Icons.thermostat,
-                                    getTempColor(temp.toDouble()),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildSensorCard(
+                                          'TDS',
+                                          '$tds ppm',
+                                          getTdsStatus(tds.toDouble()),
+                                          Icons.waves,
+                                          getTdsColor(tds.toDouble()),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: _buildSensorCard(
+                                          'Turbidity',
+                                          '$turbidity NTU',
+                                          getTurbidityStatus(
+                                            turbidity.toDouble(),
+                                          ),
+                                          Icons.bolt,
+                                          getTurbidityColor(
+                                            turbidity.toDouble(),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildSensorCard(
-                                    'TDS',
-                                    '$tds ppm',
-                                    getTdsStatus(tds.toDouble()),
-                                    Icons.waves,
-                                    getTdsColor(tds.toDouble()),
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: _buildSensorCard(
-                                    'Turbidity',
-                                    '$turbidity NTU',
-                                    getTurbidityStatus(turbidity.toDouble()),
-                                    Icons.bolt,
-                                    getTurbidityColor(turbidity.toDouble()),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        );
-                      },
-                    ),
+                                ],
+                              );
+                            },
+                          ),
                     const SizedBox(height: 100), // Space for bottom nav
                   ],
                 ),
               ),
-
-              // Dropdown Overlay
-              if (_isDeviceDropdownOpen)
-                Positioned(
-                  top: 70,
-                  left: 24,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: Container(
-                      width: 200,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(
-                              0xFF0A5C71,
-                            ).withValues(alpha: 0.2),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: ['Device A', 'Device B', 'Device C'].map((
-                          device,
-                        ) {
-                          final isSelected = _selectedDevice == device;
-                          return InkWell(
-                            onTap: () {
-                              setState(() {
-                                _selectedDevice = device;
-                                _isDeviceDropdownOpen = false;
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 16,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? const Color(
-                                        0xFF1CA3C6,
-                                      ).withValues(alpha: 0.05)
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    device,
-                                    style: TextStyle(
-                                      color: isSelected
-                                          ? const Color(0xFF1CA3C6)
-                                          : const Color(0xFF0A5C71),
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  if (isSelected)
-                                    const Icon(
-                                      Icons.check,
-                                      color: Color(0xFF1CA3C6),
-                                      size: 16,
-                                    ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
         ),

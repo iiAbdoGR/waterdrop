@@ -46,6 +46,12 @@ dependencies:
   firebase_auth: ^6.3.0
   google_sign_in: 6.1.5
   shared_preferences: ^2.5.5
+  wifi_iot: ^0.3.19+2
+  permission_handler: ^12.0.1
+  app_settings: ^7.0.0
+  network_info_plus: ^8.1.0
+  wifi_scan: ^0.4.1+2
+  connectivity_plus: ^6.0.3
 
 dev_dependencies:
   flutter_test:

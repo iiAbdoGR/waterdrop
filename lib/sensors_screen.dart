@@ -20,7 +20,7 @@ class SensorsScreen extends StatelessWidget {
         'color': const Color(0xFF4ECDC4),
         'icon': Icons.water_drop,
         'desc':
-            'Measures water acidity. Safe range: 6.5 – 8. Values outside this range may harm water quality.',
+            'Measures water acidity. \nSafe range: 6.5 – 8. \nValues outside this range may harm water quality.',
       },
       {
         'id': 'temp',
@@ -31,7 +31,7 @@ class SensorsScreen extends StatelessWidget {
         'color': const Color(0xFFFF9F1C),
         'icon': Icons.thermostat,
         'desc':
-            'Indicates water temperature. High temperatures may affect water quality and system performance.',
+            'Indicates water temperature. \nHigh temperatures may affect water quality and system performance.',
       },
       {
         'id': 'tds',
@@ -42,7 +42,7 @@ class SensorsScreen extends StatelessWidget {
         'color': const Color(0xFF1CA3C6),
         'icon': Icons.grain,
         'desc':
-            'Represents dissolved solids in water. Lower values indicate better purity.',
+            'Represents dissolved solids in water. \nLower values indicate better purity.',
       },
       {
         'id': 'turbidity',
@@ -53,7 +53,7 @@ class SensorsScreen extends StatelessWidget {
         'color': const Color(0xFF9D4EDD),
         'icon': Icons.waves,
         'desc':
-            'Measures water clarity. High turbidity may indicate contamination.',
+            'Measures water clarity. \nHigh turbidity may indicate contamination.',
       },
     ];
 

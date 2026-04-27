@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'widgets/custom_bottom_nav.dart';
 
@@ -16,14 +17,22 @@ class _AnalyzingWaterScreenState extends State<AnalyzingWaterScreen>
   void initState() {
     super.initState();
 
+    // 🔄 دوران الدايرة
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Navigator.pushReplacementNamed(context, '/home');
-    });
+    // ⏳ بعد شوية يروح للـ Home
+    startAnalyzing();
+  }
+
+  void startAnalyzing() async {
+    await Future.delayed(const Duration(seconds: 4));
+
+    if (!mounted) return;
+
+    Navigator.pushReplacementNamed(context, '/home');
   }
 
   @override
@@ -48,10 +57,11 @@ class _AnalyzingWaterScreenState extends State<AnalyzingWaterScreen>
         child: SafeArea(
           child: Column(
             children: [
+              // 🔹 Header
               Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 10.0,
+                  horizontal: 16,
+                  vertical: 10,
                 ),
                 child: Row(
                   children: [
@@ -77,23 +87,32 @@ class _AnalyzingWaterScreenState extends State<AnalyzingWaterScreen>
                   ],
                 ),
               ),
+
               const Spacer(),
+
+              // 🔥 Animation (معدل)
               Stack(
                 alignment: Alignment.center,
                 children: [
-                  SizedBox(
-                    width: 180,
-                    height: 180,
-                    child: CircularProgressIndicator(
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFF0A5C71),
+                  // 🔄 الدايرة بتلف
+                  RotationTransition(
+                    turns: _controller,
+                    child: SizedBox(
+                      width: 180,
+                      height: 180,
+                      child: CircularProgressIndicator(
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xFF0A5C71),
+                        ),
+                        backgroundColor: const Color(
+                          0xFF0A5C71,
+                        ).withOpacity(0.1),
+                        strokeWidth: 8,
                       ),
-                      backgroundColor: const Color(
-                        0xFF0A5C71,
-                      ).withValues(alpha: 0.1),
-                      strokeWidth: 8,
                     ),
                   ),
+
+                  // 💧 القطرة بتتملي (Scale Animation)
                   Container(
                     width: 120,
                     height: 120,
@@ -101,34 +120,46 @@ class _AnalyzingWaterScreenState extends State<AnalyzingWaterScreen>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF1CA3C6).withValues(alpha: 0.3),
+                          color: const Color(0xFF1CA3C6).withOpacity(0.3),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
                       ],
                     ),
-                    child: const Icon(
-                      Icons.water_drop,
-                      size: 100,
-                      color: Color(0xFF1CA3C6),
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.6, end: 1.0),
+                      duration: const Duration(seconds: 2),
+                      curve: Curves.easeInOut,
+                      builder: (context, scale, child) {
+                        return Transform.scale(scale: scale, child: child);
+                      },
+                      child: const Icon(
+                        Icons.water_drop,
+                        size: 100,
+                        color: Color(0xFF1CA3C6),
+                      ),
                     ),
                   ),
                 ],
               ),
+
               const SizedBox(height: 60),
+
               const Text(
-                'Collecting stable measurements',
+                'Collecting stable measurements...',
                 style: TextStyle(
                   fontSize: 16,
                   color: Color(0xFF0A5C71),
                   fontFamily: 'Georgia',
                 ),
               ),
+
               const Spacer(flex: 2),
             ],
           ),
         ),
       ),
+
       bottomNavigationBar: const CustomBottomNav(current: ''),
     );
   }

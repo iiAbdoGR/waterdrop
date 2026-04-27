@@ -21,7 +21,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     if (!mounted) return;
 
     if (user!.emailVerified) {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/connect_device');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

@@ -68,7 +68,11 @@ class _SignInScreenState extends State<SignInScreen> {
     await prefs.setString('loginType', 'google');
     await prefs.setBool('rememberMe', true);
 
-    Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/connect_device',
+      (route) => false,
+    );
   }
 
   @override
@@ -204,7 +208,10 @@ class _SignInScreenState extends State<SignInScreen> {
                           await prefs.setBool('rememberMe', _rememberMe);
                           if (!mounted) return;
 
-                          Navigator.pushReplacementNamed(context, '/home');
+                          Navigator.pushReplacementNamed(
+                            context,
+                            '/connect_device',
+                          );
 
                           _passwordController.clear();
                           _emailController.clear();

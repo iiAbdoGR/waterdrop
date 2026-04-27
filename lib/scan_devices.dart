@@ -1,8 +1,140 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:app_settings/app_settings.dart';
+import 'package:wifi_scan/wifi_scan.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 
-class ScanDevicesScreen extends StatelessWidget {
+class ScanDevicesScreen extends StatefulWidget {
   const ScanDevicesScreen({super.key});
 
+  @override
+  State<ScanDevicesScreen> createState() => _ScanDevicesScreenState();
+}
+
+class _ScanDevicesScreenState extends State<ScanDevicesScreen>
+    with WidgetsBindingObserver {
+  List<WiFiAccessPoint> networks = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    scanWifi();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // 🔁 لما يرجع من settings
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      checkConnection(); // 🔥 يدخل Analyze لو متصل
+      scanWifi(); // تحديث القائمة
+    }
+  }
+
+  // ✅ تحقق من الاتصال
+  Future<void> checkConnection() async {
+    final info = NetworkInfo();
+    String? wifiName;
+
+    try {
+      wifiName = await info.getWifiName();
+    } catch (e) {
+      debugPrint("Error: $e");
+    }
+
+    if (!mounted) return;
+
+    if (wifiName != null && wifiName.isNotEmpty) {
+      wifiName = wifiName.replaceAll('"', '');
+
+      Navigator.pushReplacementNamed(context, '/analyzing_water');
+    }
+  }
+
+  // 🔍 Scan WiFi
+  Future<void> scanWifi() async {
+    setState(() => isLoading = true);
+
+    var status = await Permission.location.request();
+
+    if (!status.isGranted) {
+      setState(() => isLoading = false);
+      return;
+    }
+
+    try {
+      final canScan = await WiFiScan.instance.canStartScan();
+
+      if (canScan != CanStartScan.yes) {
+        setState(() => isLoading = false);
+        return;
+      }
+
+      await WiFiScan.instance.startScan();
+      final results = await WiFiScan.instance.getScannedResults();
+
+      if (!mounted) return;
+
+      setState(() {
+        networks = results;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+    }
+  }
+
+  // 📡 فتح WiFi settings
+  void openWifiSettings() {
+    AppSettings.openAppSettings(type: AppSettingsType.wifi);
+  }
+
+  // 📱 عنصر الشبكة
+  Widget buildWifiTile(WiFiAccessPoint wifi) {
+    final ssid = wifi.ssid;
+
+    return GestureDetector(
+      onTap: ssid.isEmpty
+          ? null
+          : () {
+              openWifiSettings(); // 🔥 يفتح إعدادات الواي فاي
+            },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          border: Border.all(color: const Color(0xFF0A5C71), width: 1.2),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.wifi, color: Color(0xFF0A5C71)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                ssid.isEmpty ? "Unknown" : ssid,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0A5C71),
+                ),
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, size: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 🧱 UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -18,12 +150,14 @@ class ScanDevicesScreen extends StatelessWidget {
         ),
         child: SafeArea(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 10),
+
+              // 🔹 Header
               Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 10.0,
+                  horizontal: 16,
+                  vertical: 8,
                 ),
                 child: Row(
                   children: [
@@ -36,7 +170,7 @@ class ScanDevicesScreen extends StatelessWidget {
                     ),
                     const Expanded(
                       child: Text(
-                        'Scan For\nDevices',
+                        "Scan For\nDevices",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 28,
@@ -49,73 +183,60 @@ class ScanDevicesScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  border: Border.symmetric(
-                    horizontal: BorderSide(
-                      color: const Color(0xFF0A5C71).withValues(alpha: 0.2),
-                    ),
-                  ),
-                ),
-                child: const Text(
-                  'Scanning for nearby devices...',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF0A5C71),
-                    fontFamily: 'Georgia',
-                  ),
-                ),
+
+              const SizedBox(height: 8),
+
+              const Text(
+                "Tap a network to connect",
+                style: TextStyle(fontSize: 16, color: Color(0xFF0A5C71)),
               ),
-              const SizedBox(height: 20),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24.0),
-                child: Text(
-                  'Available Devices',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF0A5C71),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+
               const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  children: [
-                    _buildDeviceCard(context, 'Device A', isSelected: true),
-                    const SizedBox(height: 12),
-                    _buildDeviceCard(context, 'Device B'),
-                    const SizedBox(height: 12),
-                    _buildDeviceCard(context, 'Device C'),
-                    const SizedBox(height: 12),
-                    _buildAddButton(),
-                  ],
+
+              // 🔹 الشبكات
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : networks.isEmpty
+                      ? const Center(
+                          child: Text(
+                            "No networks found",
+                            style: TextStyle(color: Color(0xFF0A5C71)),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: networks.length,
+                          itemBuilder: (context, index) {
+                            return buildWifiTile(networks[index]);
+                          },
+                        ),
                 ),
               ),
-              const Spacer(),
+
+              // 🔹 Rescan
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 10,
+                ),
                 child: SizedBox(
                   width: double.infinity,
                   height: 55,
                   child: OutlinedButton(
-                    onPressed: () {},
+                    onPressed: scanWifi,
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(
                         color: Color(0xFF0A5C71),
                         width: 1.5,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
                     child: const Text(
-                      'Retry',
+                      "Rescan",
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -125,72 +246,11 @@ class ScanDevicesScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 30),
+
+              const SizedBox(height: 20),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildDeviceCard(
-    BuildContext context,
-    String name, {
-    bool isSelected = false,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(context, '/analyzing_water');
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF9CE3F5) : Colors.transparent,
-          border: Border.all(color: const Color(0xFF0A5C71), width: 1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.lock_outline, color: Color(0xFF0A5C71), size: 20),
-            const SizedBox(width: 12),
-            Text(
-              name,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0A5C71),
-              ),
-            ),
-            const Spacer(),
-            if (isSelected)
-              const Icon(Icons.check, color: Color(0xFF0A5C71), size: 24),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAddButton() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        border: Border.all(color: const Color(0xFF0A5C71), width: 1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: const [
-          Icon(Icons.add, color: Color(0xFF0A5C71), size: 24),
-          SizedBox(width: 12),
-          Text(
-            'Add new',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0A5C71),
-            ),
-          ),
-        ],
       ),
     );
   }

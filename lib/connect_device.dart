@@ -1,28 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class ConnectDeviceScreen extends StatefulWidget {
+class ConnectDeviceScreen extends StatelessWidget {
   const ConnectDeviceScreen({super.key});
-
-  @override
-  State<ConnectDeviceScreen> createState() => _ConnectDeviceScreenState();
-}
-
-class _ConnectDeviceScreenState extends State<ConnectDeviceScreen> {
-  bool isConnected = false;
-  @override
-  void initState() {
-    super.initState();
-    loadConnectionState();
-  }
-
-  Future<void> loadConnectionState() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    setState(() {
-      isConnected = prefs.getBool('connected') ?? false;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,20 +19,14 @@ class _ConnectDeviceScreenState extends State<ConnectDeviceScreen> {
         child: SafeArea(
           child: Column(
             children: [
+              // 🔹 Header
               Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 10.0,
+                  horizontal: 16,
+                  vertical: 10,
                 ),
                 child: Row(
                   children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.arrow_back_ios,
-                        color: Color(0xFF0A5C71),
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                    ),
                     const Expanded(
                       child: Text(
                         'Connect your\nDevice',
@@ -69,8 +42,10 @@ class _ConnectDeviceScreenState extends State<ConnectDeviceScreen> {
                   ],
                 ),
               ),
+
               const Spacer(),
-              // Device Icon Illustration
+
+              // 🔹 Illustration (زي ما هي)
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -130,7 +105,9 @@ class _ConnectDeviceScreenState extends State<ConnectDeviceScreen> {
                   ),
                 ],
               ),
+
               const SizedBox(height: 60),
+
               const Text(
                 'Make sure your device is\npowered on',
                 textAlign: TextAlign.center,
@@ -141,33 +118,10 @@ class _ConnectDeviceScreenState extends State<ConnectDeviceScreen> {
                   height: 1.5,
                 ),
               ),
-              const SizedBox(height: 40),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Status : ',
-                    style: TextStyle(fontSize: 16, color: Color(0xFF0A5C71)),
-                  ),
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: isConnected ? Colors.green : Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    isConnected ? 'Connected' : 'Not Connected',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Color(0xFF0A5C71),
-                    ),
-                  ),
-                ],
-              ),
+
               const Spacer(),
+
+              // 🔹 Buttons
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
@@ -184,7 +138,6 @@ class _ConnectDeviceScreenState extends State<ConnectDeviceScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          elevation: 3,
                         ),
                         child: const Text(
                           'Scan for devices',
@@ -203,11 +156,7 @@ class _ConnectDeviceScreenState extends State<ConnectDeviceScreen> {
                       width: double.infinity,
                       height: 55,
                       child: OutlinedButton(
-                        onPressed: () async {
-                          final prefs = await SharedPreferences.getInstance();
-
-                          await prefs.setBool('connected', false);
-
+                        onPressed: () {
                           Navigator.pushReplacementNamed(context, '/home');
                         },
                         style: OutlinedButton.styleFrom(
@@ -232,6 +181,7 @@ class _ConnectDeviceScreenState extends State<ConnectDeviceScreen> {
                   ],
                 ),
               ),
+
               const SizedBox(height: 30),
             ],
           ),

@@ -107,7 +107,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                                 snapshot.data?.data()
                                     as Map<String, dynamic>? ??
                                 {};
-                            final name = data?['name'] ?? "";
+                            final name = data['name'] ?? "";
                             final email = user.email ?? "";
 
                             return Container(
