@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'widgets/custom_bottom_nav.dart';
 import 'utils/esp_service.dart';
 import 'package:waterdrop/utils/water_logic.dart';
+import 'utils/water_quality.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,6 +19,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   double ph = 0;
   double turb = 0;
   int tds = 0;
+  double displayScore = 0;
+  String getTitle() {
+    if (displayScore >= 90) return "Excellent Condition";
+    if (displayScore >= 75) return "Good Condition";
+    if (displayScore >= 50) return "Moderate";
+    return "Poor Quality";
+  }
+
+  Color getMainColor() {
+    if (displayScore >= 90) return Colors.teal;
+    if (displayScore >= 75) return Colors.green;
+    if (displayScore >= 50) return Colors.orange;
+    return Colors.red;
+  }
+
+  String getStatusText() {
+    if (displayScore >= 75) return "Safe for use";
+    if (displayScore >= 50) return "Use with caution";
+    return "Not safe";
+  }
+
+  String displayStatus = '';
+
+  bool isSafe = false;
+
   final ESPService espService = ESPService();
   @override
   void initState() {
@@ -33,14 +59,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       if (!mounted) return;
 
       setState(() {
-        temp = (data['temp'] ?? 0).toDouble();
-        ph = (data['ph'] ?? 0).toDouble();
-        tds = (data['tds'] ?? 0).toInt();
-        turb = (data['turb'] ?? 0).toDouble();
+        temp = (data['temp'] ?? -1).toDouble();
+        ph = (data['ph'] ?? -1).toDouble();
+        tds = (data['tds'] ?? -1).toInt();
+        turb = (data['turb'] ?? -1).toDouble();
+
+        var result = WaterQualityModel.predict(
+          ph: ph,
+          tds: tds.toDouble(),
+          temperature: temp,
+          turbidity: turb,
+        );
+        displayScore = (result['confidence'] * 100).clamp(0, 100);
+        displayStatus = result['status'];
+        isSafe = result['potable'];
       });
     };
 
-    espService.connect(); // 🔥 بدل checkConnection
+    espService.connect();
   }
 
   @override
@@ -244,7 +280,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
+                        gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
@@ -314,8 +350,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                     ),
                                   ),
                                   const SizedBox(height: 8),
-                                  const Text(
-                                    'Excellent Condition',
+                                  Text(
+                                    getTitle(),
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 22,
@@ -346,9 +382,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             crossAxisAlignment: CrossAxisAlignment.baseline,
                             textBaseline: TextBaseline.alphabetic,
                             children: [
-                              const Text(
-                                '62',
-                                style: TextStyle(
+                              Text(
+                                displayScore.toStringAsFixed(0),
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 56,
                                   fontWeight: FontWeight.w900,
@@ -386,15 +422,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: const [
+                              children: [
                                 Icon(
-                                  Icons.check_circle,
-                                  color: Color(0xFF4ECDC4),
+                                  isSafe ? Icons.check_circle : Icons.warning,
+                                  color: getMainColor(),
                                   size: 16,
                                 ),
                                 SizedBox(width: 8),
                                 Text(
-                                  'Status: Safe for use',
+                                  'Status: ${getStatusText()}',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 12,
@@ -473,11 +509,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
                               final data = snapshot.data!;
 
-                              final ph = data['ph'] ?? 0;
-                              final temp = data['temp'] ?? 0;
-                              final tds = data['tds'] ?? 0;
-                              final turbidity = data['turbidity'] ?? 0;
+                              double ph = (data['ph'] ?? -1).toDouble();
+                              double temp = (data['temp'] ?? -1).toDouble();
+                              double tds = (data['tds'] ?? -1).toDouble();
+                              double turb = (data['turbidity'] ?? -1)
+                                  .toDouble();
 
+                              var result = WaterQualityModel.predict(
+                                ph: ph,
+                                tds: tds,
+                                temperature: temp,
+                                turbidity: turb,
+                              );
+                              double scoreFB = result['confidence'] * 100;
+                              String statusFB = result['status'];
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (mounted) {
+                                  setState(() {
+                                    displayScore = scoreFB;
+                                    displayStatus = statusFB;
+                                  });
+                                }
+                              });
                               return Column(
                                 children: [
                                   Row(
@@ -519,14 +572,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       Expanded(
                                         child: _buildSensorCard(
                                           'Turbidity',
-                                          '$turbidity NTU',
-                                          getTurbidityStatus(
-                                            turbidity.toDouble(),
-                                          ),
+                                          '$turb NTU',
+                                          getTurbidityStatus(turb.toDouble()),
                                           Icons.bolt,
-                                          getTurbidityColor(
-                                            turbidity.toDouble(),
-                                          ),
+                                          getTurbidityColor(turb.toDouble()),
                                         ),
                                       ),
                                     ],
@@ -557,12 +606,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.7),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0A5C71).withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
