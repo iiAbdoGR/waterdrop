@@ -541,7 +541,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           '$ph',
                                           getPhStatus(ph.toDouble()),
                                           Icons.water_drop,
-                                          getPhColor(ph.toDouble()),
+                                          const Color(0xFF3BA5F3),
                                         ),
                                       ),
                                       const SizedBox(width: 16),
@@ -551,7 +551,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           '$temp°C',
                                           getTempStatus(temp.toDouble()),
                                           Icons.thermostat,
-                                          getTempColor(temp.toDouble()),
+                                          const Color(0xFFFF9800),
                                         ),
                                       ),
                                     ],
@@ -565,7 +565,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           '$tds ppm',
                                           getTdsStatus(tds.toDouble()),
                                           Icons.waves,
-                                          getTdsColor(tds.toDouble()),
+                                          const Color(0xFF9C27B0),
                                         ),
                                       ),
                                       const SizedBox(width: 16),
@@ -575,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           '$turb NTU',
                                           getTurbidityStatus(turb.toDouble()),
                                           Icons.bolt,
-                                          getTurbidityColor(turb.toDouble()),
+                                          const Color(0xFF795548),
                                         ),
                                       ),
                                     ],
@@ -601,8 +601,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     String value,
     String status,
     IconData icon,
-    Color iconColor,
+    Color iconColor, // 👈 fixed icon color
   ) {
+    // 🔥 NEW: determine status color from text
+    Color statusColor;
+
+    if (status.toLowerCase().contains('optimal') ||
+        status.toLowerCase().contains('cool') ||
+        status.toLowerCase().contains('excellent') ||
+        status.toLowerCase().contains('very clear')) {
+      statusColor = Colors.green;
+    } else if (status.toLowerCase().contains('moderate') ||
+        status.toLowerCase().contains('normal')) {
+      statusColor = Colors.orange;
+    } else {
+      statusColor = Colors.red;
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -620,37 +635,46 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ✅ ICON (FIXED COLOR)
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
+              color: iconColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icon, color: iconColor, size: 24),
           ),
+
           const SizedBox(height: 16),
+
           Text(
             title,
             style: TextStyle(
-              color: const Color(0xFF0A5C71).withValues(alpha: 0.6),
+              color: const Color(0xFF0A5C71).withOpacity(0.6),
               fontSize: 13,
               fontWeight: FontWeight.bold,
             ),
           ),
+
           const SizedBox(height: 4),
+
+          // 🔥 VALUE (status color)
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: Color(0xFF0A5C71),
               fontSize: 24,
               fontWeight: FontWeight.w900,
             ),
           ),
+
           const SizedBox(height: 4),
+
+          // 🔥 STATUS (status color)
           Text(
             status,
             style: TextStyle(
-              color: iconColor,
+              color: statusColor,
               fontSize: 12,
               fontWeight: FontWeight.bold,
             ),

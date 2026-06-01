@@ -3,6 +3,7 @@ import 'widgets/custom_bottom_nav.dart';
 import 'home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'contact_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -118,7 +119,14 @@ class SettingsScreen extends StatelessWidget {
                           iconColor: Colors.purple,
                           iconBgColor: Colors.purple.shade100,
                           title: 'Contact US',
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ContactScreen(),
+                              ),
+                            );
+                          },
                         ),
 
                         const SizedBox(height: 40),
