@@ -9,19 +9,24 @@ import 'dart:io'; // flutter_ignore: dart_io_import.
 import 'package:google_sign_in_android/google_sign_in_android.dart' as google_sign_in_android;
 import 'package:path_provider_android/path_provider_android.dart' as path_provider_android;
 import 'package:shared_preferences_android/shared_preferences_android.dart' as shared_preferences_android;
+import 'package:url_launcher_android/url_launcher_android.dart' as url_launcher_android;
 import 'package:google_sign_in_ios/google_sign_in_ios.dart' as google_sign_in_ios;
 import 'package:path_provider_foundation/path_provider_foundation.dart' as path_provider_foundation;
 import 'package:shared_preferences_foundation/shared_preferences_foundation.dart' as shared_preferences_foundation;
+import 'package:url_launcher_ios/url_launcher_ios.dart' as url_launcher_ios;
 import 'package:connectivity_plus/connectivity_plus.dart' as connectivity_plus;
 import 'package:network_info_plus/network_info_plus.dart' as network_info_plus;
 import 'package:path_provider_linux/path_provider_linux.dart' as path_provider_linux;
 import 'package:shared_preferences_linux/shared_preferences_linux.dart' as shared_preferences_linux;
+import 'package:url_launcher_linux/url_launcher_linux.dart' as url_launcher_linux;
 import 'package:google_sign_in_ios/google_sign_in_ios.dart' as google_sign_in_ios;
 import 'package:path_provider_foundation/path_provider_foundation.dart' as path_provider_foundation;
 import 'package:shared_preferences_foundation/shared_preferences_foundation.dart' as shared_preferences_foundation;
+import 'package:url_launcher_macos/url_launcher_macos.dart' as url_launcher_macos;
 import 'package:network_info_plus/network_info_plus.dart' as network_info_plus;
 import 'package:path_provider_windows/path_provider_windows.dart' as path_provider_windows;
 import 'package:shared_preferences_windows/shared_preferences_windows.dart' as shared_preferences_windows;
+import 'package:url_launcher_windows/url_launcher_windows.dart' as url_launcher_windows;
 
 @pragma('vm:entry-point')
 class _PluginRegistrant {
@@ -56,6 +61,15 @@ class _PluginRegistrant {
         );
       }
 
+      try {
+        url_launcher_android.UrlLauncherAndroid.registerWith();
+      } catch (err) {
+        print(
+          '`url_launcher_android` threw an error: $err. '
+          'The app may not function as expected until you remove this plugin from pubspec.yaml'
+        );
+      }
+
     } else if (Platform.isIOS) {
       try {
         google_sign_in_ios.GoogleSignInIOS.registerWith();
@@ -80,6 +94,15 @@ class _PluginRegistrant {
       } catch (err) {
         print(
           '`shared_preferences_foundation` threw an error: $err. '
+          'The app may not function as expected until you remove this plugin from pubspec.yaml'
+        );
+      }
+
+      try {
+        url_launcher_ios.UrlLauncherIOS.registerWith();
+      } catch (err) {
+        print(
+          '`url_launcher_ios` threw an error: $err. '
           'The app may not function as expected until you remove this plugin from pubspec.yaml'
         );
       }
@@ -121,6 +144,15 @@ class _PluginRegistrant {
         );
       }
 
+      try {
+        url_launcher_linux.UrlLauncherLinux.registerWith();
+      } catch (err) {
+        print(
+          '`url_launcher_linux` threw an error: $err. '
+          'The app may not function as expected until you remove this plugin from pubspec.yaml'
+        );
+      }
+
     } else if (Platform.isMacOS) {
       try {
         google_sign_in_ios.GoogleSignInIOS.registerWith();
@@ -149,6 +181,15 @@ class _PluginRegistrant {
         );
       }
 
+      try {
+        url_launcher_macos.UrlLauncherMacOS.registerWith();
+      } catch (err) {
+        print(
+          '`url_launcher_macos` threw an error: $err. '
+          'The app may not function as expected until you remove this plugin from pubspec.yaml'
+        );
+      }
+
     } else if (Platform.isWindows) {
       try {
         network_info_plus.NetworkInfoPlusWindowsPlugin.registerWith();
@@ -173,6 +214,15 @@ class _PluginRegistrant {
       } catch (err) {
         print(
           '`shared_preferences_windows` threw an error: $err. '
+          'The app may not function as expected until you remove this plugin from pubspec.yaml'
+        );
+      }
+
+      try {
+        url_launcher_windows.UrlLauncherWindows.registerWith();
+      } catch (err) {
+        print(
+          '`url_launcher_windows` threw an error: $err. '
           'The app may not function as expected until you remove this plugin from pubspec.yaml'
         );
       }

@@ -606,13 +606,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // 🔥 NEW: determine status color from text
     Color statusColor;
 
-    if (status.toLowerCase().contains('optimal') ||
-        status.toLowerCase().contains('cool') ||
-        status.toLowerCase().contains('excellent') ||
-        status.toLowerCase().contains('very clear')) {
+    String s = status.toLowerCase();
+
+    if (s.contains('optimal') ||
+        s.contains('excellent') ||
+        s.contains('good') ||
+        s.contains('normal') ||
+        s.contains('very clear')) {
       statusColor = Colors.green;
-    } else if (status.toLowerCase().contains('moderate') ||
-        status.toLowerCase().contains('normal')) {
+    } else if (s.contains('moderate') ||
+        s.contains('slightly') ||
+        s.contains('cloudy')) {
       statusColor = Colors.orange;
     } else {
       statusColor = Colors.red;

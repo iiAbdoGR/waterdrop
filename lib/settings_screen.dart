@@ -3,10 +3,32 @@ import 'widgets/custom_bottom_nav.dart';
 import 'home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'contact_screen.dart';
+//import 'contact_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+  Widget _buildContactItem({
+    required IconData icon,
+    required String title,
+    required String email,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.blue),
+      title: Text(title),
+      subtitle: Text(email),
+
+      onTap: () async {
+        final uri = Uri(
+          scheme: 'mailto',
+          path: email,
+          query: 'subject=Water App Support',
+        );
+
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,11 +142,50 @@ class SettingsScreen extends StatelessWidget {
                           iconBgColor: Colors.purple.shade100,
                           title: 'Contact US',
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const ContactScreen(),
+                            showModalBottomSheet(
+                              context: context,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(25),
+                                ),
                               ),
+                              builder: (context) {
+                                return Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        "Contact Us",
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+
+                                      const SizedBox(height: 15),
+
+                                      _buildContactItem(
+                                        icon: Icons.email,
+                                        title: "Abdalrahman",
+                                        email: "iiabdogr@gmail.com",
+                                      ),
+
+                                      _buildContactItem(
+                                        icon: Icons.email,
+                                        title: "Menna",
+                                        email: "menna.soliman44@gmail.com",
+                                      ),
+
+                                      _buildContactItem(
+                                        icon: Icons.email,
+                                        title: "Mayar",
+                                        email: "mayar61134@gmail.com ",
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
                             );
                           },
                         ),
