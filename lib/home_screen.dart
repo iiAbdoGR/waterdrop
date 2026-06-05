@@ -480,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                   Expanded(
                                     child: _buildSensorCard(
                                       'TDS',
-                                      '$tds ppm',
+                                      '${tds.toStringAsFixed(0)} ppm',
                                       getTdsStatus(tds.toDouble()),
                                       Icons.waves,
                                       getTdsColor(tds.toDouble()),
@@ -667,7 +667,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             value,
             style: TextStyle(
               color: Color(0xFF0A5C71),
-              fontSize: 24,
+              fontSize: 22,
               fontWeight: FontWeight.w900,
             ),
           ),
