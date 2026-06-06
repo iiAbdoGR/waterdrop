@@ -24,6 +24,7 @@
         "pdf",
         "permission_handler",
         "printing",
+        "share_plus",
         "shared_preferences",
         "url_launcher",
         "web_socket_channel",
@@ -72,6 +73,26 @@
         "stream_channel",
         "test_api",
         "vector_math"
+      ]
+    },
+    {
+      "name": "share_plus",
+      "version": "13.1.0",
+      "dependencies": [
+        "cross_file",
+        "ffi",
+        "file",
+        "flutter",
+        "flutter_web_plugins",
+        "meta",
+        "mime",
+        "share_plus_platform_interface",
+        "url_launcher_linux",
+        "url_launcher_platform_interface",
+        "url_launcher_web",
+        "url_launcher_windows",
+        "web",
+        "win32"
       ]
     },
     {
@@ -457,6 +478,46 @@
       ]
     },
     {
+      "name": "win32",
+      "version": "6.1.0",
+      "dependencies": [
+        "code_assets",
+        "crypto",
+        "ffi",
+        "ffi_leak_tracker",
+        "hooks",
+        "logging",
+        "meta",
+        "native_toolchain_c"
+      ]
+    },
+    {
+      "name": "web",
+      "version": "1.1.1",
+      "dependencies": []
+    },
+    {
+      "name": "ffi",
+      "version": "2.2.0",
+      "dependencies": []
+    },
+    {
+      "name": "url_launcher_platform_interface",
+      "version": "2.3.2",
+      "dependencies": [
+        "flutter",
+        "plugin_platform_interface"
+      ]
+    },
+    {
+      "name": "url_launcher_linux",
+      "version": "3.2.2",
+      "dependencies": [
+        "flutter",
+        "url_launcher_platform_interface"
+      ]
+    },
+    {
       "name": "url_launcher_windows",
       "version": "3.1.5",
       "dependencies": [
@@ -475,24 +536,49 @@
       ]
     },
     {
-      "name": "url_launcher_platform_interface",
-      "version": "2.3.2",
+      "name": "file",
+      "version": "7.0.1",
       "dependencies": [
+        "meta",
+        "path"
+      ]
+    },
+    {
+      "name": "share_plus_platform_interface",
+      "version": "7.1.0",
+      "dependencies": [
+        "cross_file",
         "flutter",
-        "plugin_platform_interface"
+        "meta",
+        "mime",
+        "path_provider",
+        "plugin_platform_interface",
+        "uuid"
+      ]
+    },
+    {
+      "name": "flutter_web_plugins",
+      "version": "0.0.0",
+      "dependencies": [
+        "flutter"
+      ]
+    },
+    {
+      "name": "mime",
+      "version": "2.0.0",
+      "dependencies": []
+    },
+    {
+      "name": "cross_file",
+      "version": "0.3.5+2",
+      "dependencies": [
+        "meta",
+        "web"
       ]
     },
     {
       "name": "url_launcher_macos",
       "version": "3.2.5",
-      "dependencies": [
-        "flutter",
-        "url_launcher_platform_interface"
-      ]
-    },
-    {
-      "name": "url_launcher_linux",
-      "version": "3.2.2",
       "dependencies": [
         "flutter",
         "url_launcher_platform_interface"
@@ -523,38 +609,12 @@
       ]
     },
     {
-      "name": "web",
-      "version": "1.1.1",
-      "dependencies": []
-    },
-    {
       "name": "connectivity_plus_platform_interface",
       "version": "2.1.0",
       "dependencies": [
         "flutter",
         "meta",
         "plugin_platform_interface"
-      ]
-    },
-    {
-      "name": "flutter_web_plugins",
-      "version": "0.0.0",
-      "dependencies": [
-        "flutter"
-      ]
-    },
-    {
-      "name": "win32",
-      "version": "6.1.0",
-      "dependencies": [
-        "code_assets",
-        "crypto",
-        "ffi",
-        "ffi_leak_tracker",
-        "hooks",
-        "logging",
-        "meta",
-        "native_toolchain_c"
       ]
     },
     {
@@ -565,11 +625,6 @@
         "meta",
         "plugin_platform_interface"
       ]
-    },
-    {
-      "name": "ffi",
-      "version": "2.2.0",
-      "dependencies": []
     },
     {
       "name": "plugin_platform_interface",
@@ -777,11 +832,6 @@
         "meta",
         "plugin_platform_interface"
       ]
-    },
-    {
-      "name": "mime",
-      "version": "2.0.0",
-      "dependencies": []
     },
     {
       "name": "firebase_storage_web",
@@ -1041,16 +1091,6 @@
       ]
     },
     {
-      "name": "dbus",
-      "version": "0.7.12",
-      "dependencies": [
-        "args",
-        "ffi",
-        "meta",
-        "xml"
-      ]
-    },
-    {
       "name": "native_toolchain_c",
       "version": "0.17.6",
       "dependencies": [
@@ -1095,11 +1135,21 @@
       ]
     },
     {
-      "name": "file",
-      "version": "7.0.1",
+      "name": "uuid",
+      "version": "4.5.3",
       "dependencies": [
+        "crypto",
+        "fixnum"
+      ]
+    },
+    {
+      "name": "dbus",
+      "version": "0.7.12",
+      "dependencies": [
+        "args",
+        "ffi",
         "meta",
-        "path"
+        "xml"
       ]
     },
     {
@@ -1210,6 +1260,11 @@
         "path",
         "string_scanner"
       ]
+    },
+    {
+      "name": "fixnum",
+      "version": "1.1.1",
+      "dependencies": []
     }
   ],
   "configVersion": 1

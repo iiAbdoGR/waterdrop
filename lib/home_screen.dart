@@ -612,10 +612,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         s.contains('excellent') ||
         s.contains('good') ||
         s.contains('normal') ||
+        s.contains('clear') ||
         s.contains('very clear')) {
       statusColor = Colors.green;
     } else if (s.contains('moderate') ||
         s.contains('slightly') ||
+        s.contains('warm') ||
+        s.contains('poor') ||
         s.contains('cloudy')) {
       statusColor = Colors.orange;
     } else {

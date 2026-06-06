@@ -31,6 +31,21 @@ Stream<List<Map<String, dynamic>>> getHistory() {
 class _HistoryScreenState extends State<HistoryScreen> {
   String _selectedTab = 'pH';
   final GlobalKey chartKey = GlobalKey();
+  String _getStatus(Map<String, dynamic> data) {
+    double ph = (data['ph'] ?? 0).toDouble();
+    double tds = (data['tds'] ?? 0).toDouble();
+    double turbidity = (data['turbidity'] ?? 0).toDouble();
+
+    if (turbidity > 10 || tds > 1000 || ph < 6 || ph > 9) {
+      return "Dangerous";
+    }
+
+    if (ph >= 6.5 && ph <= 8.5 && tds < 500 && turbidity < 5) {
+      return "SAFE";
+    }
+
+    return "Caution";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -727,7 +742,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(16),
                                 onTap: () async {
-                                  await exportChartAsPDF(chartKey);
+                                  await exportData();
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
@@ -748,7 +763,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       ),
                                       SizedBox(height: 8),
                                       Text(
-                                        'Export',
+                                        'Export data',
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
@@ -762,6 +777,49 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 16),
+
+                        if (FirebaseAuth.instance.currentUser?.email ==
+                            "iiabdogr@gmail.com")
+                          Center(
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () async {
+                                await exportAllDataForML();
+                              },
+                              child: Container(
+                                width: 160,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: const Color(
+                                      0xFF0A5C71,
+                                    ).withValues(alpha: 0.1),
+                                  ),
+                                ),
+                                child: const Column(
+                                  children: [
+                                    Icon(
+                                      Icons.admin_panel_settings,
+                                      color: Color(0xFF0A5C71),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'Admin Export',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0A5C71),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+
                         const SizedBox(height: 100), // padding for bottom nav
                       ],
                     ),
