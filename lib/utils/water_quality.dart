@@ -5,54 +5,159 @@ class WaterQualityModel {
     required double temperature,
     required double turbidity,
   }) {
-    // 🌳 Level 1: Critical (أخطر حاجة)
-    if (turbidity >= 15) {
-      return {"confidence": 0.1, "status": "Dangerous", "potable": false};
-    }
+    String status;
+    bool potable = true;
 
-    if (tds >= 1500) {
-      return {"confidence": 0.15, "status": "Dangerous", "potable": false};
-    }
-
-    // 🌳 Level 2: Turbidity
-    if (turbidity >= 10) {
-      return {"confidence": 0.25, "status": "Dangerous", "potable": false};
-    }
-
-    // 🌳 Level 3: pH
+    // 🌳 Level 1: pH
     if (ph >= 6.5 && ph <= 8.5) {
-      // 🌳 Level 4: TDS
-      if (tds < 300) {
-        // 🌳 Level 5: Temperature
-        if (temperature >= 22 && temperature <= 27) {
-          return {"confidence": 0.95, "status": "SAFE", "potable": true};
-        } else if (temperature >= 20 && temperature <= 30) {
-          return {"confidence": 0.85, "status": "SAFE", "potable": true};
+      // 🌳 Level 2: Temperature
+      if (temperature >= 22 && temperature <= 27) {
+        // 🌳 Level 3: TDS
+        if (tds < 300) {
+          // 🌳 Level 4: Turbidity
+          if (turbidity <= 1) {
+            status = "Safe";
+          } else if (turbidity <= 3) {
+            status = "Safe";
+          } else if (turbidity <= 5) {
+            status = "Caution";
+          } else if (turbidity <= 8) {
+            status = "Caution";
+          } else {
+            status = "Dangerous";
+            potable = false;
+          }
+        } else if (tds < 500) {
+          if (turbidity <= 3) {
+            status = "Caution";
+          } else if (turbidity <= 5) {
+            status = "Caution";
+          } else {
+            status = "Dangerous";
+            potable = false;
+          }
+        } else if (tds < 800) {
+          if (turbidity <= 3) {
+            status = "Caution";
+          } else {
+            status = "Dangerous";
+            potable = false;
+          }
         } else {
-          return {"confidence": 0.7, "status": "Caution!", "potable": true};
+          status = "Dangerous";
+          potable = false;
         }
-      } else if (tds < 700) {
-        if (turbidity < 3) {
-          return {"confidence": 0.75, "status": "Caution!", "potable": true};
+      }
+      // 🟡 Temperature (20–30)
+      else if (temperature >= 20 && temperature <= 30) {
+        if (tds < 300) {
+          if (turbidity <= 3) {
+            status = "Safe";
+          } else if (turbidity <= 5) {
+            status = "Caution";
+          } else {
+            status = "Dangerous";
+            potable = false;
+          }
+        } else if (tds < 500) {
+          if (turbidity <= 5) {
+            status = "Caution";
+          } else {
+            status = "Dangerous";
+            potable = false;
+          }
         } else {
-          return {"confidence": 0.6, "status": "Caution!", "potable": true};
+          status = "Dangerous";
+          potable = false;
         }
-      } else if (tds < 1000) {
-        return {"confidence": 0.5, "status": "Caution!", "potable": true};
-      } else {
-        return {"confidence": 0.3, "status": "Dangerous", "potable": false};
       }
-    } else {
-      // 🌳 Level 4: pH خارج الطبيعي
-      if (ph < 6 || ph > 9) {
-        return {"confidence": 0.2, "status": "Dangerous", "potable": false};
-      }
-
-      if (tds > 800 || turbidity > 5) {
-        return {"confidence": 0.35, "status": "Dangerous", "potable": false};
-      } else {
-        return {"confidence": 0.55, "status": "Caution!", "potable": true};
+      // 🔴 Temperature خارج
+      else {
+        if (tds < 300 && turbidity <= 3) {
+          status = "Caution";
+        } else {
+          status = "Dangerous";
+          potable = false;
+        }
       }
     }
+    // 🟡 pH borderline
+    else if (ph >= 6 && ph <= 9) {
+      if (temperature > 35) {
+        status = "Dangerous";
+        potable = false;
+      } else if (turbidity > 8) {
+        status = "Dangerous";
+        potable = false;
+      } else if (tds > 700) {
+        status = "Dangerous";
+        potable = false;
+      } else {
+        status = "Caution";
+      }
+    }
+    // 🔴 pH خارج خالص
+    else {
+      if (temperature > 35 || turbidity > 8 || tds > 700) {
+        status = "Dangerous";
+        potable = false;
+      } else {
+        status = "Caution";
+      }
+    }
+
+    // ─────────────────────────────
+    // 🧠 SCORE SYSTEM (متظبط)
+    // ─────────────────────────────
+
+    double score = 0;
+
+    // pH
+    if (ph >= 6.5 && ph <= 8.5)
+      score += 25;
+    else if (ph >= 6 && ph <= 9)
+      score += 15;
+
+    // Temperature
+    if (temperature >= 22 && temperature <= 27) {
+      score += 25;
+    } else if (temperature >= 20 && temperature <= 30) {
+      score += 20;
+    } else if (temperature <= 33) {
+      score += 18;
+    } else {
+      score += 10;
+    }
+
+    // TDS
+    if (tds < 300)
+      score += 25;
+    else if (tds < 500)
+      score += 18;
+    else if (tds < 800)
+      score += 8;
+
+    // Turbidity (متقسمة صح 🔥)
+    if (turbidity <= 1)
+      score += 25;
+    else if (turbidity <= 3)
+      score += 20;
+    else if (turbidity <= 5)
+      score += 12;
+    else if (turbidity <= 8)
+      score += 6;
+    else if (turbidity <= 10)
+      score += 2;
+    else
+      score += 0;
+
+    double confidence = score / 100;
+
+    return {
+      "status": status,
+      "potable": potable,
+      "score": score,
+      "confidence": confidence,
+    };
   }
 }

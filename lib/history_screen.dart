@@ -31,21 +31,6 @@ Stream<List<Map<String, dynamic>>> getHistory() {
 class _HistoryScreenState extends State<HistoryScreen> {
   String _selectedTab = 'pH';
   final GlobalKey chartKey = GlobalKey();
-  String _getStatus(Map<String, dynamic> data) {
-    double ph = (data['ph'] ?? 0).toDouble();
-    double tds = (data['tds'] ?? 0).toDouble();
-    double turbidity = (data['turbidity'] ?? 0).toDouble();
-
-    if (turbidity > 10 || tds > 1000 || ph < 6 || ph > 9) {
-      return "Dangerous";
-    }
-
-    if (ph >= 6.5 && ph <= 8.5 && tds < 500 && turbidity < 5) {
-      return "SAFE";
-    }
-
-    return "Caution";
-  }
 
   @override
   Widget build(BuildContext context) {
