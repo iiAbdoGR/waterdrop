@@ -112,47 +112,62 @@ class WaterQualityModel {
 
     double score = 0;
 
-    // pH
-    if (ph >= 6.5 && ph <= 8.5)
+    // 🧪 pH
+    if (ph <= 0 || ph > 14) {
+      score += 0; // Sensor Error
+    } else if (ph >= 6.5 && ph <= 8.5) {
       score += 25;
-    else if (ph >= 6 && ph <= 9)
+    } else if (ph >= 6 && ph <= 9) {
       score += 15;
-
-    // Temperature
-    if (temperature >= 22 && temperature <= 27) {
-      score += 25;
-    } else if (temperature >= 20 && temperature <= 30) {
-      score += 20;
-    } else if (temperature <= 33) {
-      score += 18;
     } else {
-      score += 10;
+      score += 5;
     }
 
-    // TDS
-    if (tds < 300)
+    // 🌡️ Temperature (متظبط 🔥)
+    if (temperature <= 0 || temperature > 100) {
+      score += 0; // Sensor Error
+    } else if (temperature >= 22 && temperature <= 27) {
       score += 25;
-    else if (tds < 500)
+    } else if (temperature >= 20 && temperature <= 30) {
+      score += 15;
+    } else if (temperature <= 33) {
+      score += 8; // 👈 قللناها
+    } else {
+      score += 0; // حرارة وحشة
+    }
+
+    // 💧 TDS (fix مهم 🔥)
+    if (tds <= 0) {
+      score += 0; // Sensor Error
+    } else if (tds < 300) {
+      score += 25;
+    } else if (tds < 500) {
       score += 18;
-    else if (tds < 800)
+    } else if (tds < 800) {
       score += 8;
-
-    // Turbidity (متقسمة صح 🔥)
-    if (turbidity <= 1)
-      score += 25;
-    else if (turbidity <= 3)
-      score += 20;
-    else if (turbidity <= 5)
-      score += 12;
-    else if (turbidity <= 8)
-      score += 6;
-    else if (turbidity <= 10)
-      score += 2;
-    else
+    } else {
       score += 0;
+    }
 
+    // 🌊 Turbidity (متقسمة صح)
+    if (turbidity <= 0 || turbidity > 1000) {
+      score += 0; // Sensor Error
+    } else if (turbidity <= 1) {
+      score += 25;
+    } else if (turbidity <= 3) {
+      score += 20;
+    } else if (turbidity <= 5) {
+      score += 12;
+    } else if (turbidity <= 8) {
+      score += 6;
+    } else if (turbidity <= 10) {
+      score += 2;
+    } else {
+      score += 0;
+    }
+
+    // 🎯 Final
     double confidence = score / 100;
-
     return {
       "status": status,
       "potable": potable,
