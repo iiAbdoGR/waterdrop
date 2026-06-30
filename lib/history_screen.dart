@@ -727,7 +727,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(16),
                                 onTap: () async {
-                                  await exportChartAsPDF(chartKey);
+                                  await exportData();
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
@@ -748,7 +748,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       ),
                                       SizedBox(height: 8),
                                       Text(
-                                        'Export',
+                                        'Export data',
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
@@ -762,6 +762,49 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 16),
+
+                        if (FirebaseAuth.instance.currentUser?.email ==
+                            "iiabdogr@gmail.com")
+                          Center(
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () async {
+                                await exportAllDataForML();
+                              },
+                              child: Container(
+                                width: 160,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: const Color(
+                                      0xFF0A5C71,
+                                    ).withValues(alpha: 0.1),
+                                  ),
+                                ),
+                                child: const Column(
+                                  children: [
+                                    Icon(
+                                      Icons.admin_panel_settings,
+                                      color: Color(0xFF0A5C71),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'Admin Export',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0A5C71),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+
                         const SizedBox(height: 100), // padding for bottom nav
                       ],
                     ),
