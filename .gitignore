@@ -1,8 +1,33 @@
-node_modules/
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub/
 build/
-dist/
-coverage/
+
+# IDE
+.idea/
+.vscode/
+
+# Android
+android/local.properties
+
+# Generated files
+*.apk
+*.aab
+
+# macOS
 .DS_Store
+
+# Logs
 *.log
+
+# Environment
 .env*
 !.env.example
+
+# Node (لو عندك Dashboard أو Web داخل نفس الـRepo)
+node_modules/
+dist/
+coverage/
